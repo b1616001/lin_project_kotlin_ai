@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<resources>
+    <string name="app_name">lin_new_project_kotlin</string>
+    <string name="tw">繁中</string>
+    <string name="cn">簡體</string>
+    <string name="us">English</string>
+    <string name="es">Español</string>
+    <string name="jp">日本語</string>
+    <string-array name="home_array">
+        <item>1.Room</item>
+        <item>2.多國語系</item>
+        <item>3.GPS</item>
+        <item>4.Web Api</item>
+        <item>5.TTS語音</item>
+        <item>6.數位簽章</item>
+        <item>7.兩個時間內跑回圈</item>
+        <item>8.日歷</item>
+        <item>9.兩個陣列資料混合</item>
+        <item>10.圖表</item>
+        <item>11.ViewFlipper</item>
+        <item>12.錄音</item>
+        <item>13.NFC</item>
+        <item>14.RecyclerView拖曳</item>
+        <item>15.連線狀態</item>
+        <item>16.自定義AlertDialog</item>
+        <item>17.記事本</item>
+        <item>18.字串含有URL，並提供凡藍點擊功能</item>
+        <item>19.自定義APopupWindow</item>
+        <item>20.Qrcode產生器</item>
+        <item>21.震動、鈴聲</item>
+        <item>22.屏幕休眠開關</item>
+        <item>23.隱藏標題列、狀態列</item>
+        <item>24.Gif動畫</item>
+        <item>25.WebView</item>
+        <item>26.Window客製化</item>
+        <item>27.時區轉換</item>
+        <item>28.存取檔案</item>
+        <item>29.GLSurface</item>
+        <item>30.圖片縮放移動</item>
+    </string-array>
+    <string name="monday">星期一</string>
+    <string name="tuesday">星期二</string>
+    <string name="wednesday">星期三</string>
+    <string name="thursday">星期四</string>
+    <string name="friday">星期五</string>
+    <string name="saturday">星期六</string>
+    <string name="sunday">星期日</string>
+</resources>

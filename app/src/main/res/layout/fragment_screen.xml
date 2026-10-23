@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+  >
+
+    <TextView
+        android:layout_marginTop="10dp"
+
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/tv_on"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@color/blue"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:text="防止屏幕休眠開啟" />
+    <TextView
+        app:layout_constraintTop_toBottomOf="@+id/tv_on"
+        android:layout_marginTop="10dp"
+        android:id="@+id/tv_off"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:background="@color/blue"
+        android:padding="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="20dp"
+        android:text="防止屏幕休眠關閉" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

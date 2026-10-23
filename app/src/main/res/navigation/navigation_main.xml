@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_main.xml"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.HomeFragment"
+        android:label="HomeFragment" >
+
+        <action
+            android:id="@+id/action_homeFragment_to_textFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/textFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_roomFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/roomFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_languageFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/languageFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_ttsFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/ttsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_signatureFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/signatureFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_timeFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/timeFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_MPAndroidChartFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/MPAndroidChartFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_viewPagerFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/viewPagerFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_recordingFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/recordingFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_nfcFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/nfcFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_simpleItemFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/simpleItemFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_textUrlFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/textUrlFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_zbarFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/zbarFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_notebookFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/notebookFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_qrcodeFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/qrcodeFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_volumetFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/volumetFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_screenFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/screenFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_gifFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/gifFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_webViewFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/webViewFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_GLSurfaceFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/GLSurfaceFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_publicSpaceFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/publicSpaceFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_scaleImageFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/scaleImageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/textFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.TextFragment"
+        android:label="TextFragment" />
+    <fragment
+        android:id="@+id/roomFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.RoomFragment"
+        android:label="RoomFragment" />
+    <fragment
+        android:id="@+id/languageFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.LanguageFragment"
+        android:label="LanguageFragment" />
+    <fragment
+        android:id="@+id/ttsFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.TtsFragment"
+        android:label="TtsFragment" />
+    <fragment
+        android:id="@+id/signatureFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.SignatureFragment"
+        android:label="SignatureFragment" />
+    <fragment
+        android:id="@+id/timeFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.TimeFragment"
+        android:label="TimeFragment" />
+    <fragment
+        android:id="@+id/MPAndroidChartFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.MPAndroidChartFragment"
+        android:label="MPAndroidChartFragment" />
+    <fragment
+        android:id="@+id/viewPagerFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.ViewPagerFragment"
+        android:label="ViewPagerFragment" />
+    <fragment
+        android:id="@+id/recordingFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.RecordingFragment"
+        android:label="RecordingFragment" />
+    <fragment
+        android:id="@+id/nfcFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.NfcFragment"
+        android:label="NfcFragment" />
+    <fragment
+        android:id="@+id/simpleItemFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.SimpleItemFragment"
+        android:label="SimpleItemFragment" />
+    <fragment
+        android:id="@+id/textUrlFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.TextUrlFragment"
+        android:label="TextUrlFragment" />
+    <fragment
+        android:id="@+id/zbarFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.ZbarFragment"
+        android:label="ZbarFragment" />
+    <fragment
+        android:id="@+id/notebookFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.NotebookFragment"
+        android:label="NotebookFragment" />
+    <fragment
+        android:id="@+id/qrcodeFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.QrcodeFragment"
+        android:label="QrcodeFragment" />
+    <fragment
+        android:id="@+id/volumetFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.VolumetFragment"
+        android:label="VolumetFragment" />
+    <fragment
+        android:id="@+id/screenFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.ScreenFragment"
+        android:label="ScreenFragment" />
+    <fragment
+        android:id="@+id/gifFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.GifFragment"
+        android:label="GifFragment" />
+    <fragment
+        android:id="@+id/webViewFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.WebViewFragment"
+        android:label="WebViewFragment" />
+    <fragment
+        android:id="@+id/GLSurfaceFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.GLSurfaceFragment"
+        android:label="GLSurfaceFragment" />
+    <fragment
+        android:id="@+id/publicSpaceFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.PublicSpaceFragment"
+        android:label="PublicSpaceFragment" />
+    <fragment
+        android:id="@+id/scaleImageFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.ScaleImageFragment"
+        android:label="ScaleImageFragment" />
+</navigation>

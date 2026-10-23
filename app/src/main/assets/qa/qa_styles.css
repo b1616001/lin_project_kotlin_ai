@@ -1,0 +1,103 @@
+body,html{background-color:#dbffe9;}
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  vertical-align: baseline;
+  outline: none;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+	font-family: 'Microsoft JhengHei';
+	
+}
+.ui-collapsible-content {
+    padding: .5em;
+}
+.ui-content{ padding: .5em;}
+/** QA **/
+.goToTop a{
+    padding: 10px;    
+    font-size: 20px;
+    color:#C30;
+    cursor: pointer;
+	display:block;
+	text-align:right;
+	text-decoration:none;
+}
+.qa h3 a{line-height:1.5em;}
+.qa p{ line-height:1.5em;}
+.qa .A{ padding:2px 5px 5px; margin-right:5px; font-family:Georgia; color:#fff; border:1 solid #C33; border-radius:15px; background:#fc55a5;}
+.qa .IMG{ width:100%; text-align:center; margin:5px 0;}
+.qa h3{ text-overflow:no;overflow:auto;white-space:normal;}
+
+.ui-btn {
+    font-family: 'Microsoft JhengHei';
+}
+.ui-page-theme-a{background-color:#dbffe9;}
+.ui-page-theme-a .ui-btn {
+    color: #144e4c;
+    text-shadow: none;
+    background-color: #019889;
+	border:1px solid #cdf9f7;
+}
+.ui-page-theme-a .ui-btn{
+    color: #fff;
+    text-shadow:none;
+    background-color: #019889;
+}
+.ui-page-theme-a .ui-btn:active, .ui-page-theme-a .ui-btn:hover {
+    color: #fff;
+    text-shadow: none;background-color: #18b7a7;
+}
+.ui-page-theme-a .ui-btn:visited{background-color: #019889;color:#fff; font-weight: normal; text-shadow: none;}
+.ui-page-theme-a .ui-body-inherit{
+	background-color: #eef8f7;border-left:1px solid #48b5ac;border-right:1px solid #48b5ac;}
+
+ul{margin:10px 0 10px 15px;}
+
+/*懶人包*/
+.operating, .operat{ background-color:#dbffe9;}
+.operating{text-align: center;}
+.operating h1{text-align:center; font-size:1.8em;margin-bottom: 5px; text-shadow:none; color:#0e8c89;}
+.textwl{ color:#111;width: 220px; text-align:left; text-shadow:none; font-size:15px; line-height:22px; margin:0 auto;}
+.textwl ol{ list-style-type:decimal;margin-left:1em;}
+.operating img{ margin:5px 0;}
+.operating p{line-height:1.5em; text-shadow: none;}
+.textwhite{ text-shadow: none; color:#1A1A1A; font-size: 1.1em; font-weight: bold;text-align: center;}
+.textleft{ text-shadow: none; color:#1A1A1A; font-size: 1.1em; font-weight: bold; text-align: left;}
+.textred{color:#E50307;font-size: 1em;}
+.ghostbt {
+  display: inline-block;
+  padding: 6px 15px;
+  margin:5px;
+  color: #fff !important;
+  text-shadow:none;
+  border: 1px solid #338671;
+  background: #4aa991;
+  text-align: center;
+  outline: none;
+  letter-spacing:2px;
+  text-decoration: none;
+  font-size:1.1em;
+  
+}
+.ghostbt:hover,
+.ghostbt:active {
+  background:rgba(74,169,145,.5);
+  color: #000;
+}
+.linesty{font-size:1.3em; list-style: none; padding-top:40px;}
+.linesty li{
+	margin-top:10px;	
+}
+.linesty li a{text-decoration: none; color:#01a48b; text-shadow: none;}
+.linesty li a:hover, .linesty li a:active{color:#23d1b6;}
+
+
+
+
+

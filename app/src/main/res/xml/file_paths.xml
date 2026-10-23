@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path
+        name="external-path"
+        path="." />
+    <cache-path
+        name="cache-path"
+        path="." />
+    <files-path
+        name="files-path"
+        path="." />
+    <root-path path="" name="camera_photos" />
+</paths>
+
+    <!--對應關係：-->
+
+    <!--外部路徑對應 Environment.getExternalStorageDirectory()-->
+    <!--緩存路徑對應 getCacheDir()-->
+    <!--文件路徑對應getFilesDir()-->
+    <!--路徑指定對應目錄下的子目錄，path =“”。表示該目錄下所有子目錄-->
