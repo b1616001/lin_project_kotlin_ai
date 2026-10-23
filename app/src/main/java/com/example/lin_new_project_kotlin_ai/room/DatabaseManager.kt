@@ -68,7 +68,7 @@ class DatabaseManager(context: Context) {
 
     //這一區塊是處理UserProfiles----------------------------------------------------------------------
     fun getUserProfilesALL(databaseCallback: DatabaseCallback<UserProfileEntity?>) {
-        Log.d(TAG, "getUserProfilesALL")
+        Log.d(TAG, "getUserProfilesALL")//
         val d = db.dbDao()!!
             .userProfilesALL
             .subscribeOn(Schedulers.io())

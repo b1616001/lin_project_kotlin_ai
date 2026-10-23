@@ -1,0 +1,8 @@
+{
+  "name": "lin_new_project_kotlin",
+  "description": "Android component demos and utilities including Room, TTS, NFC, QR code, MPAndroidChart, OpenGL, and more",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
