@@ -70,7 +70,7 @@ public abstract class BasePopupWindow<VB extends ViewBinding> extends PopupWindo
         }
         if (height == 0) {
             h = MATCH_PARENT;
-        } else if (width == 1) {
+        } else if (height == 1) {
             h = WRAP_CONTENT;
         } else {
             h = dp2px(height);

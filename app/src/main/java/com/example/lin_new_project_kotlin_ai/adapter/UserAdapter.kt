@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lin_new_project_kotlin_ai.databinding.ItemuserBinding
 import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
-import com.google.gson.Gson
 
 class UserAdapter(
     private val context: Context?,
@@ -15,9 +14,11 @@ class UserAdapter(
     var isReverse: Boolean = false
 
     private var onItemClickListener: OnItemClickListener? = null
+    private var onDeleteClickListener: OnDeleteClickListener? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val binding = ItemuserBinding.inflate(
-            LayoutInflater.from(parent.getContext()), parent,
+            LayoutInflater.from(parent.context), parent,
             false
         )
         return MyRecyclerViewHolder(binding)
@@ -26,7 +27,15 @@ class UserAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val holder1 = holder as MyRecyclerViewHolder
         val ii = position + 1
-        holder1.binding.tvText.setText(ii.toString() + "." + Gson().toJson(array.get(position)))
+        val item = array[position]
+        val user = item?.userData
+        val typeStr = when (user?.userType) {
+            1 -> "使用者 (User)"
+            0 -> "訪客 (Guest)"
+            else -> "類型: ${user?.userType ?: 0}"
+        }
+        val text = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"}\n    $typeStr | 頭像: ${user?.imageName ?: "-"}"
+        holder1.binding.tvText.text = text
     }
 
     override fun getItemCount(): Int {
@@ -34,14 +43,21 @@ class UserAdapter(
     }
 
     inner class MyRecyclerViewHolder internal constructor(var binding: ItemuserBinding) :
-        RecyclerView.ViewHolder(binding.getRoot())
-    {
+        RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.getRoot().setOnClickListener {
+            binding.root.setOnClickListener {
                 if (onItemClickListener != null) {
                     val pos = adapterPosition
                     if (pos != RecyclerView.NO_POSITION && pos >= 0 && pos < array.size) {
                         onItemClickListener!!.OnItemClick(array[pos])
+                    }
+                }
+            }
+            binding.btnItemDelete.setOnClickListener {
+                if (onDeleteClickListener != null) {
+                    val pos = adapterPosition
+                    if (pos != RecyclerView.NO_POSITION && pos >= 0 && pos < array.size) {
+                        onDeleteClickListener!!.onDeleteClick(array[pos], pos)
                     }
                 }
             }
@@ -57,10 +73,15 @@ class UserAdapter(
         this.onItemClickListener = onItemClickListener
     }
 
+    fun setOnDeleteClickListener(onDeleteClickListener: OnDeleteClickListener?) {
+        this.onDeleteClickListener = onDeleteClickListener
+    }
+
     interface OnItemClickListener {
-        /**
-         * 介面中的點選每一項的實現方法，引數自己定義
-         */
         fun OnItemClick(userProfileEntity: UserProfileEntity?)
+    }
+
+    interface OnDeleteClickListener {
+        fun onDeleteClick(userProfileEntity: UserProfileEntity?, position: Int)
     }
 }

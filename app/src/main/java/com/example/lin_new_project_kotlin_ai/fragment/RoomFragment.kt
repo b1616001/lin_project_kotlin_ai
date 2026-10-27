@@ -9,6 +9,7 @@ import com.example.lin_new_project_kotlin_ai.adapter.UserAdapter
 import com.example.lin_new_project_kotlin_ai.databinding.FragmentRoomBinding
 import com.example.lin_new_project_kotlin_ai.`fun`.CommonUtils
 import com.example.lin_new_project_kotlin_ai.`fun`.RecyclerViewMethed
+import com.example.lin_new_project_kotlin_ai.popupwindow.PopupWindowManager
 import com.example.lin_new_project_kotlin_ai.room.DatabaseCallback
 import com.example.lin_new_project_kotlin_ai.room.data.FavoritesData
 import com.example.lin_new_project_kotlin_ai.room.data.HistoryData
@@ -40,6 +41,8 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
             true, true
         )
         userAdapter = UserAdapter(context, ArrayList())
+
+        // 點擊列表項目選中
         userAdapter?.setOnItemClickListener(object : UserAdapter.OnItemClickListener {
             override fun OnItemClick(userProfile: UserProfileEntity?) {
                 userProfileEntity = userProfile
@@ -53,23 +56,68 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
                 }
             }
         })
+
+        // 列表中單獨刪除單一資料
+        userAdapter?.setOnDeleteClickListener(object : UserAdapter.OnDeleteClickListener {
+            override fun onDeleteClick(userProfile: UserProfileEntity?, position: Int) {
+                val target = userProfile ?: return
+                val userName = target.userData?.userName ?: "未命名"
+                PopupWindowManager.showDeleteConfirmPopupWindow(
+                    requireActivity(),
+                    "確認刪除帳號",
+                    "確定要刪除第 ${position + 1} 項帳號嗎？\nID: ${target.uid}\n名稱: $userName"
+                ) {
+                    performDeleteUserProfile(target)
+                }
+            }
+        })
+
         getBinding()?.recyclerView?.adapter = userAdapter
-        getBinding()?.btnInsert?.setOnClickListener { insertUserProfileEntity() }
+
+        // 新增帳號：點擊跳出 PopupWindow，繼承 BasePopupWindow，透過 PopupWindowManager 跳出
+        getBinding()?.btnInsert?.setOnClickListener {
+            PopupWindowManager.showAddAccountPopupWindow(requireActivity()) { userData ->
+                insertUserProfile(userData)
+            }
+        }
+
         getBinding()?.btnQuery?.setOnClickListener { getUserProfileEntityALL() }
-        getBinding()?.btnDelete?.setOnClickListener { deleteUserProfile() }
-        getBinding()?.btnClearTable?.setOnClickListener { clearTable() }
+
+        // 刪除選中的帳號：跳出 PopupWindow 確認
+        getBinding()?.btnDelete?.setOnClickListener {
+            val target = userProfileEntity ?: run {
+                showToast("請先點選欲刪除之使用者")
+                return@setOnClickListener
+            }
+            val userName = target.userData?.userName ?: "未命名"
+            PopupWindowManager.showDeleteConfirmPopupWindow(
+                requireActivity(),
+                "確認刪除帳號",
+                "確定要刪除選中的帳號資料嗎？\nID: ${target.uid}\n名稱: $userName"
+            ) {
+                performDeleteUserProfile(target)
+            }
+        }
+
+        // 清空資料庫：也跳出確認 PopupWindow 確保安全
+        getBinding()?.btnClearTable?.setOnClickListener {
+            PopupWindowManager.showDeleteConfirmPopupWindow(
+                requireActivity(),
+                "確認清空資料庫",
+                "確定要清空所有資料庫帳號資料嗎？此操作無法復原！"
+            ) {
+                clearTable()
+            }
+        }
+
         getBinding()?.btnInsertFavorites?.setOnClickListener { insertFavoritesEntity() }
         getBinding()?.btnInsertHistory?.setOnClickListener { insertHistoryEntity() }
     }
 
-    private fun insertUserProfileEntity() {
-        val entity = UserProfileEntity()
-        val userData = UserData()
-        val randomNum = (100..999).random()
-        userData.userName = "User_$randomNum"
-        userData.userType = (0..2).random()
-        userData.imageName = "img_$randomNum"
-        entity.userData = userData
+    private fun insertUserProfile(userData: UserData) {
+        val entity = UserProfileEntity().apply {
+            this.userData = userData
+        }
         mDatabaseManager().insertUserProfileEntity(
             entity,
             object : DatabaseCallback<UserProfileEntity?>() {
@@ -115,24 +163,22 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
         })
     }
 
-    private fun deleteUserProfile() {
-        val target = userProfileEntity ?: run {
-            showToast("請先點選欲刪除之使用者")
-            return
-        }
+    private fun performDeleteUserProfile(target: UserProfileEntity) {
         mDatabaseManager().deleteUserProfile(target, object : DatabaseCallback<UserProfileEntity?>() {
             override fun onDeleted() {
                 super.onDeleted()
-                userProfileEntity = null
-                getBinding()?.apply {
-                    btnDelete.visibility = View.GONE
-                    btnInsertFavorites.visibility = View.GONE
-                    btnInsertHistory.visibility = View.GONE
-                    tvUser.visibility = View.GONE
-                    tvUser.text = ""
+                if (userProfileEntity?.uid == target.uid) {
+                    userProfileEntity = null
+                    getBinding()?.apply {
+                        btnDelete.visibility = View.GONE
+                        btnInsertFavorites.visibility = View.GONE
+                        btnInsertHistory.visibility = View.GONE
+                        tvUser.visibility = View.GONE
+                        tvUser.text = ""
+                    }
                 }
-                setLog("onDeleted")
-                showToast("刪除成功")
+                setLog("onDeleted, target ID: ${target.uid}")
+                showToast("刪除成功 (ID: ${target.uid})")
                 getUserProfileEntityALL()
             }
 
