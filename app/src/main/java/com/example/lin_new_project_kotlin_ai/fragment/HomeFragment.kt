@@ -226,20 +226,8 @@ class HomeFragment : BaseBindingFragment<FragmentHomeBinding?>() {
     }
 
     private fun getGPS() {
-        val gpsPositioning = GPSPositioningMethod(
-            mainActivity!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager?,
-            mainActivity
-        )
-        gpsPositioning.startGPS()
-        var wgs_x: String? = "0"
-        var wgs_y: String? = "0"
-        if (gpsPositioning.getMyLongitude() !== 0.0 || gpsPositioning.getMyLatitude() !== 0.0) {
-            wgs_x = java.lang.String.valueOf(gpsPositioning.getMyLongitude())
-            wgs_y = java.lang.String.valueOf(gpsPositioning.getMyLatitude())
-            showToast(" $wgs_x,$wgs_y ")
-        } else {
-            showToast("定位失敗")
-        }
+        val act = activity ?: return
+        PopupWindowManager.showGpsInfoPopupWindow(act)
     }
     private fun getApiUid() {
         val time: String = Time()

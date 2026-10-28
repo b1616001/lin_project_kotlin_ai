@@ -126,6 +126,14 @@ object PopupWindowManager {
     }
 
     /**
+     * GPS 即時定位資訊 PopupWindow
+     */
+    fun showGpsInfoPopupWindow(context: Context) {
+        val popup = GpsInfoPopupWindow(context)
+        showPopup(context, popup, showDarkBg = true, gravity = Gravity.CENTER)
+    }
+
+    /**
      * 新增帳號 PopupWindow (RoomFragment)
      */
     fun showAddAccountPopupWindow(context: Context, onConfirm: (UserData) -> Unit) {
