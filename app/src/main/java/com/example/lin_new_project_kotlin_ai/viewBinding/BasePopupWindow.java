@@ -6,61 +6,100 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewGroupOverlay;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
 import com.example.lin_new_project_kotlin_ai.General;
 
-
+/**
+ * 優化版 BasePopupWindow
+ * - 支援 ViewBinding 自動綁定
+ * - 平滑淡入/平移動畫 (使用硬體加速層及標準插值器)
+ * - 解決原版在 dismiss() 時立即將 binding 置空導致的動畫期間 NullPointerException 競態問題
+ * - 解決 duration 遞減導致重複彈窗動畫速度異常的缺陷
+ * - 內建生命週期與 Activity 存活狀態檢查，避免 WindowManager BadTokenException
+ * - 支援軟鍵盤自動調適 (SOFT_INPUT_ADJUST_RESIZE) 與焦點獲取
+ */
 public abstract class BasePopupWindow<VB extends ViewBinding> extends PopupWindow {
 
-    private VB binding;
-
-    int orientation;
+    protected VB binding;
+    protected int orientation;
     protected View parentView;
     protected int duration;
     protected Context mContext;
-
-    private final boolean isDark;
+    protected boolean isDark;
     public boolean isClearDark;
-
     protected int viewX, viewY;
+    private boolean isDismissing = false;
+    protected OnCustomDismissListener onCustomDismissListener;
 
-   // protected View v;
-
+    public interface OnCustomDismissListener {
+        void onStartDismiss();
+        void onDismiss();
+    }
 
     /**
-     * @param context       context
-     * @param duration      動畫持續時間
-     * @param height        window高度
-     * @param width         window寬度
-     * @param animateType   動畫類型
-     * @param isTouchCancel 是否點擊視窗外面關閉視窗
-     * @param isDark        視窗後面的背景色 是否變暗
-     * @param isFloating    是否為 OVERLAY視窗
+     * 簡易建構子：預設 WRAP_CONTENT, 300ms, FADE 動畫, 點擊外部可關閉, 啟用暗色背景
      */
-    public BasePopupWindow(Context context, int duration, int height, int width, @General.animationType int animateType, boolean isTouchCancel, boolean isDark, boolean isFloating, boolean isClearDark) {
-        this.orientation = animateType;
-        this.duration = duration;
+    public BasePopupWindow(@NonNull Context context) {
+        this(context, 300, 1, 1, General.FADE, true, true, false, false);
+    }
+
+    /**
+     * 自訂寬高的建構子
+     */
+    public BasePopupWindow(@NonNull Context context, int width, int height) {
+        this(context, 300, height, width, General.FADE, true, true, false, false);
+    }
+
+    /**
+     * 完整建構子 (完全相容既有調用方式)
+     *
+     * @param context       Context
+     * @param duration      動畫時間 (ms)
+     * @param height        Window 高度 (0: MATCH_PARENT, 1: WRAP_CONTENT, 其他: dp)
+     * @param width         Window 寬度 (0: MATCH_PARENT, 1: WRAP_CONTENT, 其他: dp)
+     * @param animateType   動畫類型 (General.TRANSLATION_X, TRANSLATION_Y, FADE, SCALE_X, SCALE_Y, NONE)
+     * @param isTouchCancel 是否點擊視窗外面關閉視窗
+     * @param isDark        視窗後面背景是否變暗
+     * @param isFloating    是否為系統浮動 OVERLAY 視窗
+     * @param isClearDark   是否在關閉時清除暗色
+     */
+    public BasePopupWindow(
+            @NonNull Context context,
+            int duration,
+            int height,
+            int width,
+            @General.animationType int animateType,
+            boolean isTouchCancel,
+            boolean isDark,
+            boolean isFloating,
+            boolean isClearDark
+    ) {
+        super(context);
         this.mContext = context;
+        this.duration = Math.max(0, duration);
+        this.orientation = animateType;
         this.isDark = isDark;
-        this.isClearDark = false;
+        this.isClearDark = isClearDark;
+
         binding = onCreateViewBinding(LayoutInflater.from(context));
         setContentView(binding.getRoot());
-//        View baseView = ((Activity) context).findViewById(android.R.id.content);
-        int w, h;
+
+        int w;
         if (width == 0) {
             w = MATCH_PARENT;
         } else if (width == 1) {
@@ -68,6 +107,8 @@ public abstract class BasePopupWindow<VB extends ViewBinding> extends PopupWindo
         } else {
             w = dp2px(width);
         }
+
+        int h;
         if (height == 0) {
             h = MATCH_PARENT;
         } else if (height == 1) {
@@ -75,107 +116,158 @@ public abstract class BasePopupWindow<VB extends ViewBinding> extends PopupWindo
         } else {
             h = dp2px(height);
         }
+
         setWidth(w);
         setHeight(h);
-        setFocusable(false);
-        setOutsideTouchable(isTouchCancel);
 
-//        setBackgroundDrawable(mWindowBackgroundDrawable);
-        //  setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        //這個方法是設置是否允許PopupWindow超出屏幕邊界，默認的，彈窗超出屏幕邊界是要被剪裁掉。如果傳入false,將允許彈窗顯示實際的（正確無誤）位置。
-        // setClippingEnabled(false);
-        //android 10 沒設定 TYPE_APPLICATION _OVERLAY ，下面會有空隙
-        if (isFloating) {//浮動視窗，要有Window權限
+        // 預設可獲取焦點與外部觸控
+        setFocusable(true);
+        setOutsideTouchable(isTouchCancel);
+        setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+        if (isFloating) {
             setWindowLayoutType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         }
 
         fullScreenImmersive(getContentView());
-        if (isDark){
+    }
 
+    @NonNull
+    protected abstract VB onCreateViewBinding(@NonNull LayoutInflater layoutInflater);
 
-        }
-
+    @Nullable
+    public VB getBinding() {
+        return binding;
     }
 
     @Override
     public void showAsDropDown(View anchor, int xOff, int yOff, int gravity) {
+        if (isHostActivityDead()) return;
         super.showAsDropDown(anchor, xOff, yOff, gravity);
-
-        if (orientation == General.TRANSLATION_X) {
-            ObjectAnimator.ofFloat(getContentView(), "translationX", getWidth(), 0).setDuration(duration).start();
-        } else if (orientation == General.TRANSLATION_Y) {
-            ObjectAnimator.ofFloat(getContentView(), "translationY", getHeight(), 0).setDuration(duration).start();
-        } else {
-            ObjectAnimator.ofFloat(getContentView(), "alpha", 0f, 1f).setDuration(600).start();
-        }
+        animateIn();
     }
-
 
     @Override
     public void showAtLocation(View parent, int gravity, int x, int y) {
+        if (isHostActivityDead()) return;
         super.showAtLocation(parent, gravity, x, y);
-        parentView = parent;
+        this.parentView = parent;
+        this.viewX = x;
+        this.viewY = y;
+        animateIn();
+    }
 
-//        if (isDark) setAlpha();
+    private boolean isHostActivityDead() {
+        if (mContext instanceof Activity) {
+            Activity act = (Activity) mContext;
+            return act.isFinishing() || act.isDestroyed();
+        }
+        return false;
+    }
 
+    protected void animateIn() {
+        final View content = getContentView();
+        if (content == null || duration <= 0 || orientation == General.NONE) return;
+
+        content.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         switch (orientation) {
             case General.TRANSLATION_X:
-                ObjectAnimator.ofFloat(getContentView(), "translationX", getWidth(), 0).setDuration(duration).start();
+                ObjectAnimator animTx = ObjectAnimator.ofFloat(content, "translationX", getWidth() > 0 ? getWidth() : 500f, 0f);
+                animTx.setDuration(duration);
+                animTx.setInterpolator(new DecelerateInterpolator());
+                animTx.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        content.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                });
+                animTx.start();
                 break;
             case General.TRANSLATION_Y:
-                ObjectAnimator.ofFloat(getContentView(), "translationY", getHeight(), 0).setDuration(duration).start();
-                break;
-            case General.FADE:
-                ObjectAnimator.ofFloat(getContentView(), "alpha", 0f, 1f).setDuration(duration).start();
+                ObjectAnimator animTy = ObjectAnimator.ofFloat(content, "translationY", getHeight() > 0 ? getHeight() : 500f, 0f);
+                animTy.setDuration(duration);
+                animTy.setInterpolator(new DecelerateInterpolator());
+                animTy.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        content.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                });
+                animTy.start();
                 break;
             case General.SCALE_X:
-                ObjectAnimator.ofFloat(getContentView(), "scaleX", 0f, 1f).setDuration(duration).start();
+                ObjectAnimator animSx = ObjectAnimator.ofFloat(content, "scaleX", 0.6f, 1f);
+                animSx.setDuration(duration);
+                animSx.setInterpolator(new DecelerateInterpolator());
+                animSx.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        content.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                });
+                animSx.start();
                 break;
             case General.SCALE_Y:
-                ObjectAnimator.ofFloat(getContentView(), "scaleY", 0f, 1f).setDuration(duration).start();
+                ObjectAnimator animSy = ObjectAnimator.ofFloat(content, "scaleY", 0.6f, 1f);
+                animSy.setDuration(duration);
+                animSy.setInterpolator(new DecelerateInterpolator());
+                animSy.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        content.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                });
+                animSy.start();
                 break;
-            case General.NONE:
+            case General.FADE:
+            default:
+                ObjectAnimator animAlpha = ObjectAnimator.ofFloat(content, "alpha", 0f, 1f);
+                animAlpha.setDuration(duration);
+                animAlpha.setInterpolator(new DecelerateInterpolator());
+                animAlpha.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        content.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                });
+                animAlpha.start();
                 break;
         }
-        viewX = x;
-        viewY = y;
-    }
-
-    protected void setAlpha() {
-        ViewGroup viewGroup = (ViewGroup) parentView.getRootView();
-        Drawable dim = new ColorDrawable(Color.BLACK);
-        dim.setBounds(0, 0, parentView.getWidth(), parentView.getHeight());
-        dim.setAlpha(Math.round(255 * 0.6f));
-        ViewGroupOverlay overlay = viewGroup.getOverlay();
-        overlay.add(dim);
     }
 
     /**
-     * Value of dp to value of px.
-     *
-     * @param dpValue The value of dp.
-     * @return value of px
-     */
-    public int dp2px(final float dpValue) {
-        final float scale = Resources.getSystem().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
-    }
-
-
-    protected OnCustomDismissListener onCustomDismissListener;
-
-    /**
-     * 直接關閉PopupWindow，沒有動畫效果
+     * 直接關閉 PopupWindow，無退出動畫
      */
     public void superDismiss() {
-        super.dismiss();
-        if (onCustomDismissListener != null) {
-            onCustomDismissListener.onDismiss();
+        try {
+            super.dismiss();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            isDismissing = false;
+            binding = null;
+            parentView = null;
+            if (onCustomDismissListener != null) {
+                onCustomDismissListener.onDismiss();
+            }
         }
     }
 
     @Override
     public void dismiss() {
+        if (isDismissing) return;
+        isDismissing = true;
+
+        if (onCustomDismissListener != null) {
+            onCustomDismissListener.onStartDismiss();
+        }
+
+        if (duration <= 0 || orientation == General.NONE) {
+            superDismiss();
+            return;
+        }
+
         try {
             animateOut(new AnimatorListenerAdapter() {
                 @Override
@@ -183,74 +275,87 @@ public abstract class BasePopupWindow<VB extends ViewBinding> extends PopupWindo
                     superDismiss();
                 }
             });
-            if (onCustomDismissListener != null) {
-                onCustomDismissListener.onStartDismiss();
-            }
-            binding = null;
-            parentView = null;
-
-//            if (isDark) LiveEventBus.get(SET_ALPHA_BACKGROUND).post(false);
-
         } catch (Exception e) {
             e.printStackTrace();
+            superDismiss();
         }
     }
 
     private void animateOut(final Animator.AnimatorListener listener) {
+        final View content = getContentView();
+        if (content == null) {
+            listener.onAnimationEnd(null);
+            return;
+        }
 
-        if(duration != 0) duration = duration - 100;
+        int exitDuration = Math.max(100, duration - 60);
+        content.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-        Animator.AnimatorListener animatorListenerAdapter = new AnimatorListenerAdapter() {
+        Animator.AnimatorListener internalListener = new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
+                content.setLayerType(View.LAYER_TYPE_NONE, null);
+                content.animate().setListener(null);
                 listener.onAnimationEnd(animation);
-                getContentView().animate().setListener(null);
             }
         };
 
         switch (orientation) {
             case General.TRANSLATION_X:
-                getContentView().animate().translationX(getWidth()).setListener(animatorListenerAdapter).setDuration(duration).start();
+                content.animate()
+                        .translationX(getWidth() > 0 ? getWidth() : 500f)
+                        .setInterpolator(new AccelerateInterpolator())
+                        .setDuration(exitDuration)
+                        .setListener(internalListener)
+                        .start();
                 break;
             case General.TRANSLATION_Y:
-                getContentView().animate().translationY(getHeight()).setListener(animatorListenerAdapter).setDuration(duration).start();
-                break;
-            case General.FADE:
-                getContentView().animate().alpha(0.1f).setListener(animatorListenerAdapter).setDuration(duration).start();
+                content.animate()
+                        .translationY(getHeight() > 0 ? getHeight() : 500f)
+                        .setInterpolator(new AccelerateInterpolator())
+                        .setDuration(exitDuration)
+                        .setListener(internalListener)
+                        .start();
                 break;
             case General.SCALE_X:
-                getContentView().animate().scaleX(0.1f).setListener(animatorListenerAdapter).setDuration(duration).start();
+                content.animate()
+                        .scaleX(0.1f)
+                        .setInterpolator(new AccelerateInterpolator())
+                        .setDuration(exitDuration)
+                        .setListener(internalListener)
+                        .start();
                 break;
             case General.SCALE_Y:
-                getContentView().animate().scaleY(0.1f).setListener(animatorListenerAdapter).setDuration(duration).start();
+                content.animate()
+                        .scaleY(0.1f)
+                        .setInterpolator(new AccelerateInterpolator())
+                        .setDuration(exitDuration)
+                        .setListener(internalListener)
+                        .start();
                 break;
-            case General.NONE:
-                listener.onAnimationEnd(null);
+            case General.FADE:
+            default:
+                content.animate()
+                        .alpha(0f)
+                        .setInterpolator(new AccelerateInterpolator())
+                        .setDuration(exitDuration)
+                        .setListener(internalListener)
+                        .start();
                 break;
         }
-
     }
 
     public void setOnCustomDismissListener(OnCustomDismissListener onCustomDismissListener) {
         this.onCustomDismissListener = onCustomDismissListener;
     }
 
-    public interface OnCustomDismissListener {
-
-        void onStartDismiss();
-
-        void onDismiss();
+    public int dp2px(final float dpValue) {
+        final float scale = Resources.getSystem().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
     }
-
-
-
-    protected abstract VB onCreateViewBinding(@NonNull LayoutInflater layoutInflater);
-    public VB getBinding() {
-        return binding;
-    }
-
 
     protected void fullScreenImmersive(View view) {
+        if (view == null) return;
         int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -259,6 +364,4 @@ public abstract class BasePopupWindow<VB extends ViewBinding> extends PopupWindo
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         view.setSystemUiVisibility(uiOptions);
     }
-
-
 }

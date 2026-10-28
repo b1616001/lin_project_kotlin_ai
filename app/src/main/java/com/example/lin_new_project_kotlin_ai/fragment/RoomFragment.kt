@@ -268,6 +268,7 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
     }
 
     override fun onDestroyView() {
+        PopupWindowManager.dismissCurrentPopup()
         mDatabaseManager().roomClear()
         super.onDestroyView()
     }
