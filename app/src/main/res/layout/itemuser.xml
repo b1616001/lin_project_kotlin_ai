@@ -5,14 +5,16 @@
     android:layout_marginBottom="8dp"
     android:background="@drawable/panel_bg_all_20_1f1f1f"
     android:orientation="vertical"
-    android:padding="4dp">
+    android:padding="6dp">
 
+    <!-- Top Row: User Summary & Delete Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="4dp">
 
         <TextView
             android:id="@+id/tv_text"
@@ -21,9 +23,10 @@
             android:layout_weight="1"
             android:gravity="start|center_vertical"
             android:lineSpacingExtra="2dp"
-            android:text="TextView"
+            android:text="1. [ID: 1] User_100"
             android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnItemDelete"
@@ -38,10 +41,40 @@
             android:textSize="13sp" />
     </LinearLayout>
 
+    <!-- Complete Data JSON Display -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="6dp"
+        android:layout_marginVertical="4dp"
+        android:background="@drawable/bg_edit_text"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="整體資料 JSON："
+            android:textColor="#9AA0A6"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tv_json"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="2dp"
+            android:text="{}"
+            android:textColor="#03DAC5"
+            android:textSize="12sp" />
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#33FFFFFF" />
+        android:layout_marginTop="4dp"
+        android:background="#22FFFFFF" />
 
 </LinearLayout>

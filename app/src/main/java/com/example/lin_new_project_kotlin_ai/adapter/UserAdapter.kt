@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lin_new_project_kotlin_ai.databinding.ItemuserBinding
 import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
+import com.google.gson.Gson
 
 class UserAdapter(
     private val context: Context?,
@@ -30,13 +31,17 @@ class UserAdapter(
         val item = array[position]
         val user = item?.userData
         val typeStr = when (user?.userType) {
-            1 -> "使用者 (User)"
-            0 -> "訪客 (Guest)"
+            1 -> "使用者"
+            0 -> "訪客"
             else -> "類型: ${user?.userType ?: 0}"
         }
-        val noteStr = if (!item?.note.isNullOrEmpty()) " | 備註: ${item?.note}" else ""
-        val text = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"}\n    $typeStr | 頭像: ${user?.imageName ?: "-"}$noteStr"
-        holder1.binding.tvText.text = text
+        val noteStr = if (!item?.note.isNullOrEmpty()) " | ${item?.note}" else ""
+        val titleText = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"} ($typeStr$noteStr)"
+        holder1.binding.tvText.text = titleText
+
+        // 顯示整體資料的 JSON
+        val jsonText = if (item != null) Gson().toJson(item) else "{}"
+        holder1.binding.tvJson.text = jsonText
     }
 
     override fun getItemCount(): Int {
