@@ -36,7 +36,7 @@ import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
  */
 @Database(
     entities = [UserProfileEntity::class, FavoritesEntity::class, HistoryEntity::class],
-    version = 4,
+    version = 5,
     autoMigrations = [
         // v1 -> v2: 自動新增 createTime 與 memo 欄位 (自動處理，無需 Spec)
         AutoMigration(from = 1, to = 2),
@@ -44,6 +44,8 @@ import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
         AutoMigration(from = 2, to = 3, spec = DBDatabase.AutoMigration2To3Spec::class),
         // v3 -> v4: 自動新增 textname 欄位 (自動處理，無需 Spec)
         AutoMigration(from = 3, to = 4),
+        // v3 -> v4: 自動新增 text 欄位 (自動處理，無需 Spec)
+        AutoMigration(from = 4, to = 5),
     ],
     exportSchema = true
 )
