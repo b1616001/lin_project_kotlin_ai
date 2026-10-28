@@ -30,4 +30,8 @@ class UserProfileEntity {
     @androidx.room.ColumnInfo(name = "note")
     var note: String? = null
 
+    @JvmField
+    @androidx.room.ColumnInfo(name = "textname")
+    var textname: String? = null
+
 }

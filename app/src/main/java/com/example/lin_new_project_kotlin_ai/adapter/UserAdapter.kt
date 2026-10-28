@@ -36,7 +36,8 @@ class UserAdapter(
             else -> "類型: ${user?.userType ?: 0}"
         }
         val noteStr = if (!item?.note.isNullOrEmpty()) " | ${item?.note}" else ""
-        val titleText = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"} ($typeStr$noteStr)"
+        val textNameStr = if (!item?.textname.isNullOrEmpty()) " | textname: ${item?.textname}" else ""
+        val titleText = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"} ($typeStr$noteStr$textNameStr)"
         holder1.binding.tvText.text = titleText
 
         // 顯示整體資料的 JSON

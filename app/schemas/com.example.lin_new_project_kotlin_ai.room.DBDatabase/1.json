@@ -2,7 +2,6 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "89377cf1038bd63bf1bdf291cfa3e808",
     "entities": [
       {
         "tableName": "user_profile",
@@ -165,7 +164,6 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '89377cf1038bd63bf1bdf291cfa3e808')"
     ]
   }
 }
