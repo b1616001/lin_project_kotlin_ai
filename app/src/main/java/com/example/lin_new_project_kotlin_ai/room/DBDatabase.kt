@@ -34,12 +34,14 @@ import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
  */
 @Database(
     entities = [UserProfileEntity::class, FavoritesEntity::class, HistoryEntity::class],
-    version = 3,
+    version = 4,
     autoMigrations = [
         // v1 -> v2: 自動新增 createTime 與 memo 欄位 (自動處理，無需 Spec)
         AutoMigration(from = 1, to = 2),
         // v2 -> v3: 自動將 user_profile 表的 memo 欄位更名為 note 欄位 (透過 @RenameColumn Spec)
-        AutoMigration(from = 2, to = 3, spec = DBDatabase.AutoMigration2To3Spec::class)
+        AutoMigration(from = 2, to = 3, spec = DBDatabase.AutoMigration2To3Spec::class),
+        // v3 -> v4: 自動新增 textname 欄位 (自動處理，無需 Spec)
+        AutoMigration(from = 3, to = 4)
     ],
     exportSchema = true
 )

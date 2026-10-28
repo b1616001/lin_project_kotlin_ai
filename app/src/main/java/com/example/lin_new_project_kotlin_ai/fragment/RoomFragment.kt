@@ -119,6 +119,7 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
             this.userData = userData
             this.createTime = System.currentTimeMillis()
             this.note = "AutoMigration 建立"
+            this.textname = "TN_${userData.userName}"
         }
         mDatabaseManager().insertUserProfileEntity(
             entity,
