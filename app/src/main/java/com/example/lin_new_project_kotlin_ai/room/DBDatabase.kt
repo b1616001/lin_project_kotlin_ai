@@ -1,19 +1,47 @@
 package com.example.lin_new_project_kotlin_ai.room
 
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.RenameColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room.migration.AutoMigrationSpec
 import com.example.lin_new_project_kotlin_ai.room.entity.FavoritesEntity
 import com.example.lin_new_project_kotlin_ai.room.entity.HistoryEntity
 import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
 
-
+/**
+ * Room AutoMigration 資料庫配置
+ *
+ * 【AutoMigration 自動遷移機制與使用說明】：
+ *
+ * 1. 【新增欄位 (Add Column)】：
+ *    - 當 Entity 新增欄位時，若是 Nullable（例如 var note: String? = null）或有設定預設值
+ *      （例如 @ColumnInfo(defaultValue = "0") var createTime: Long = 0L），
+ *    - Room 可自動辨識並產生 ALTER TABLE ADD COLUMN 語法，不需要額外撰寫 Spec。
+ *    - 範例：從 Version 1 遷移至 Version 2：AutoMigration(from = 1, to = 2)
+ *
+ * 2. 【重新命名欄位 (Rename Column)】：
+ *    - 因為 SQLite / Room 無法自動推斷是「刪除舊欄位並建立新欄位」還是「更名」，
+ *    - 因此需透過 @RenameColumn 指定原欄位名與新欄位名，搭配 AutoMigrationSpec。
+ *    - 範例：從 Version 2 遷移至 Version 3：將 user_profile 的 memo 欄位更名為 note 欄位。
+ *
+ * 3. 【刪除欄位 (Delete Column)】：
+ *    - 在 Spec 加上 @DeleteColumn(tableName = "...", columnName = "...")，Room 自動處理。
+ *
+ * 4. 【重新命名資料表 (Rename Table)】：
+ *    - 在 Spec 加上 @RenameTable(fromTableName = "...", toTableName = "...")，Room 自動處理。
+ */
 @Database(
     entities = [UserProfileEntity::class, FavoritesEntity::class, HistoryEntity::class],
-    version = 1,
-    exportSchema = false
+    version = 3,
+    autoMigrations = [
+        // v1 -> v2: 自動新增 createTime 與 memo 欄位 (自動處理，無需 Spec)
+        AutoMigration(from = 1, to = 2),
+        // v2 -> v3: 自動將 user_profile 表的 memo 欄位更名為 note 欄位 (透過 @RenameColumn Spec)
+        AutoMigration(from = 2, to = 3, spec = DBDatabase.AutoMigration2To3Spec::class)
+    ],
+    exportSchema = true
 )
 @TypeConverters(
     Converters::class
@@ -21,51 +49,14 @@ import com.example.lin_new_project_kotlin_ai.room.entity.UserProfileEntity
 abstract class DBDatabase : RoomDatabase() {
     abstract fun dbDao(): DBDao?
 
-
-    companion object {
-        //以下 此區塊式資料庫更新範本
-        val MIGRATION_1_2: Migration = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-//            database.execSQL("ALTER TABLE test ADD COLUMN wattAccumulate REAL NOT NULL DEFAULT 0");
-//            database.execSQL("ALTER TABLE test ADD COLUMN wattFrequency INTEGER NOT NULL DEFAULT 0");
-//            database.execSQL("ALTER TABLE test ADD COLUMN workoutMonth INTEGER NOT NULL DEFAULT 0");
-            }
-        }
-
-        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                //當添加int 類型數據時，需要添加默認值
-//            database.execSQL("ALTER TABLE user_profile ADD COLUMN sleepMode INTEGER NOT NULL DEFAULT 0");
-            }
-        }
-
-        val MIGRATION_3_4: Migration = object : Migration(3, 4) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-//            database.execSQL("ALTER TABLE user_profile ADD COLUMN passCode TEXT");
-            }
-        }
-
-        val MIGRATION_4_5: Migration = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-//            database.execSQL("ALTER TABLE user_profile ADD COLUMN passcodeOn INTEGER NOT NULL DEFAULT 0");
-            }
-        } //    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
-        //        @Override
-        //        public void migrate(@NonNull SupportSQLiteDatabase database) {
-        //            database.execSQL("ALTER TABLE expense ADD COLUMN itemName TEXT");
-        //            database.execSQL("ALTER TABLE expense ADD COLUMN itemNo TEXT");
-        //            database.execSQL("ALTER TABLE expense ADD COLUMN itemQuantity INTEGER NOT NULL DEFAULT 0");
-        //            //當添加int 類型數據時，需要添加默認值
-        //            database.execSQL("ALTER TABLE expense ADD COLUMN itemPrice INTEGER NOT NULL DEFAULT 0");
-        //        }
-        //    };
-        //
-        //    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
-        //        @Override
-        //        public void migrate(@NonNull SupportSQLiteDatabase database) {
-        //            //當添加int 類型數據時，需要添加默認值
-        //            database.execSQL("ALTER TABLE expense ADD COLUMN itemTotal INTEGER NOT NULL DEFAULT 0");
-        //        }
-        //    };
-    }
+    /**
+     * v2 -> v3 的欄位更名 Spec
+     * 讓 Room 自動執行欄位更名 (memo -> note)，保留舊有所有資料
+     */
+    @RenameColumn(
+        tableName = UserProfileEntity.USER_PROFILE,
+        fromColumnName = "memo",
+        toColumnName = "note"
+    )
+    class AutoMigration2To3Spec : AutoMigrationSpec
 }

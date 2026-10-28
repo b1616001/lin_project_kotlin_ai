@@ -34,7 +34,8 @@ class UserAdapter(
             0 -> "訪客 (Guest)"
             else -> "類型: ${user?.userType ?: 0}"
         }
-        val text = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"}\n    $typeStr | 頭像: ${user?.imageName ?: "-"}"
+        val noteStr = if (!item?.note.isNullOrEmpty()) " | 備註: ${item?.note}" else ""
+        val text = "$ii. [ID: ${item?.uid ?: 0}] ${user?.userName ?: "未命名"}\n    $typeStr | 頭像: ${user?.imageName ?: "-"}$noteStr"
         holder1.binding.tvText.text = text
     }
 

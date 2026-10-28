@@ -22,4 +22,11 @@ class UserProfileEntity {
     @TypeConverters(Converters::class) //借助裡面的JSONToUesrData方法進行UesrData轉換成字串寫入資料庫，UesrDataStringToJSON使用將JSON字串轉成UesrData物件
     var userData: UserData? = null
 
+    @JvmField
+    @androidx.room.ColumnInfo(defaultValue = "0")
+    var createTime: Long = 0L
+
+    @JvmField
+    @androidx.room.ColumnInfo(name = "note")
+    var note: String? = null
 }

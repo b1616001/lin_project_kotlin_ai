@@ -1,0 +1,171 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "89377cf1038bd63bf1bdf291cfa3e808",
+    "entities": [
+      {
+        "tableName": "user_profile",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userData` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userData",
+            "columnName": "userData",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "uid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_profile_uid",
+            "unique": false,
+            "columnNames": [
+              "uid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_profile_uid` ON `${TABLE_NAME}` (`uid`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "favorites",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`favoriteName` TEXT, `favoriteParentUid` INTEGER NOT NULL, `favoriteType` INTEGER NOT NULL, `isDefault` INTEGER NOT NULL, `favoritesData` TEXT, PRIMARY KEY(`favoriteParentUid`, `favoriteType`), FOREIGN KEY(`favoriteParentUid`) REFERENCES `user_profile`(`uid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "favoriteName",
+            "columnName": "favoriteName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "favoriteParentUid",
+            "columnName": "favoriteParentUid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favoriteType",
+            "columnName": "favoriteType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isDefault",
+            "columnName": "isDefault",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favoritesData",
+            "columnName": "favoritesData",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "favoriteParentUid",
+            "favoriteType"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_favorites_favoriteParentUid",
+            "unique": false,
+            "columnNames": [
+              "favoriteParentUid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_favorites_favoriteParentUid` ON `${TABLE_NAME}` (`favoriteParentUid`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "user_profile",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "favoriteParentUid"
+            ],
+            "referencedColumns": [
+              "uid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `historyParentUid` INTEGER NOT NULL, `historyData` TEXT, FOREIGN KEY(`historyParentUid`) REFERENCES `user_profile`(`uid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historyParentUid",
+            "columnName": "historyParentUid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historyData",
+            "columnName": "historyData",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "uid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_history_historyParentUid",
+            "unique": false,
+            "columnNames": [
+              "historyParentUid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_history_historyParentUid` ON `${TABLE_NAME}` (`historyParentUid`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "user_profile",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "historyParentUid"
+            ],
+            "referencedColumns": [
+              "uid"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '89377cf1038bd63bf1bdf291cfa3e808')"
+    ]
+  }
+}

@@ -25,11 +25,7 @@ class DatabaseManager(context: Context) {
 
     init {
         db = Room.databaseBuilder<DBDatabase>(context, DBDatabase::class.java, DB_NAME)
-            .fallbackToDestructiveMigration() //清空，如果版本升級卻無addMigrations則將會刪除資料庫並重建
-            //                .addMigrations(MIGRATION_1_2) //升級
-            //                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-            //                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
-            //                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .fallbackToDestructiveMigrationOnDowngrade() // 支援 AutoMigration 自動平滑遷移升級，降級時才重構
             .build()
     }
 

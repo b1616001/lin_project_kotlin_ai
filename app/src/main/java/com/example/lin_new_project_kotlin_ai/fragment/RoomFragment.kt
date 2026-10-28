@@ -117,6 +117,8 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
     private fun insertUserProfile(userData: UserData) {
         val entity = UserProfileEntity().apply {
             this.userData = userData
+            this.createTime = System.currentTimeMillis()
+            this.note = "AutoMigration 建立"
         }
         mDatabaseManager().insertUserProfileEntity(
             entity,
