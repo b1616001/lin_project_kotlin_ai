@@ -2,6 +2,7 @@ package com.example.lin_new_project_kotlin_ai.view
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
@@ -24,49 +25,58 @@ class RadarView(context: Context) : View(context) {
     private val txtPaint: Paint //文字paint
     private val circlePaint: Paint //圆点paint
     private val regionColorPaint: Paint //覆盖区域paint
-    private val percents = arrayOf<Double?>(0.91, 0.35, 0.12, 0.8, 0.5) //覆盖区域百分比
+    private var percents = arrayOf<Double?>(0.91, 0.35, 0.52, 0.8, 0.65) // 覆蓋區域百分比
     private val titles =
-        arrayOf<String>("dota", "斗地主", "大吉大利，晚上吃鸡", "炉石传说", "跳一跳") //文字
-
+        arrayOf<String>("射擊", "策略", "反應", "體力", "團隊") // 文字
 
     init {
-        //计算圆心角
+        // 計算圓心角
         angle = (Math.PI * 2 / count).toFloat()
 
-        polygonPaint = Paint()
-        polygonPaint.setColor(ContextCompat.getColor(context, R.color.colorPrimary))
-        polygonPaint.setAntiAlias(true)
-        polygonPaint.setStyle(Paint.Style.STROKE)
-        polygonPaint.setStrokeWidth(4f)
+        polygonPaint = Paint().apply {
+            color = ContextCompat.getColor(context, R.color.colorPrimary)
+            isAntiAlias = true
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+        }
 
-        linePaint = Paint()
-        linePaint.setColor(ContextCompat.getColor(context, R.color.colorPrimaryDark))
-        linePaint.setAntiAlias(true)
-        linePaint.setStyle(Paint.Style.STROKE)
-        linePaint.setStrokeWidth(2f)
+        linePaint = Paint().apply {
+            color = ContextCompat.getColor(context, R.color.colorPrimaryDark)
+            isAntiAlias = true
+            style = Paint.Style.STROKE
+            strokeWidth = 1.5f
+        }
 
-        txtPaint = Paint()
-        txtPaint.setColor(ContextCompat.getColor(context, R.color.black))
-        txtPaint.setAntiAlias(true)
-        txtPaint.setStyle(Paint.Style.STROKE)
-        txtPaint.setTextSize(30f)
+        txtPaint = Paint().apply {
+            color = ContextCompat.getColor(context, R.color.black)
+            isAntiAlias = true
+            style = Paint.Style.FILL
+            textSize = 32f
+        }
 
-        circlePaint = Paint()
-        circlePaint.setColor(ContextCompat.getColor(context, R.color.colorAccent))
-        circlePaint.setAntiAlias(true)
+        circlePaint = Paint().apply {
+            color = ContextCompat.getColor(context, R.color.colorAccent)
+            isAntiAlias = true
+        }
 
-        regionColorPaint = Paint()
-        regionColorPaint.setColor(ContextCompat.getColor(context, R.color.black))
-        regionColorPaint.setStyle(Paint.Style.FILL)
-        regionColorPaint.setAntiAlias(true)
+        regionColorPaint = Paint().apply {
+            color = Color.parseColor("#706200EE") // 半透明紫色覆蓋區域
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+    }
+
+    fun setPercents(newPercents: Array<Double?>) {
+        this.percents = newPercents
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        //        drawRegion(canvas);
-//        drawLines(canvas);
-//        drawText(canvas);
         drawPolygon(canvas)
+        drawLines(canvas)
+        drawRegion(canvas)
+        drawText(canvas)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

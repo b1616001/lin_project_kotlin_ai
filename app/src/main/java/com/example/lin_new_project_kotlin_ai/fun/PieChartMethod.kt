@@ -320,30 +320,32 @@ object PieChartMethod {
             entries.add(pieEntry)
         }
         val colors = ArrayList<Int?>()
-        colors.add(Color.parseColor("#f17548"))
-        colors.add(Color.parseColor("#FF9933"))
-        colors.add(Color.BLUE)
-        colors.add(Color.BLACK)
-        colors.add(Color.GRAY)
-        //饼状图数据集 PieDataSet
-        val pieDataSet = PieDataSet(entries, "")
-        pieDataSet.setDrawValues(true)
-        pieDataSet.setDrawIcons(true)
-        pieDataSet.setIconsOffset(MPPointF(0f, 40f))
-        pieDataSet.setSliceSpace(0f) //设置饼状Item之间的间隙
-        pieDataSet.setSelectionShift(0f) //设置饼状Item被选中时变化的距离
-        pieDataSet.setColors(colors) //为DataSet中的数据匹配上颜色集(饼图Item颜色)
+        colors.add(Color.parseColor("#42A5F5")) // 湛藍
+        colors.add(Color.parseColor("#66BB6A")) // 翠綠
+        colors.add(Color.parseColor("#FFA726")) // 暖橘
+        colors.add(Color.parseColor("#AB47BC")) // 紫羅蘭
+        colors.add(Color.parseColor("#26A69A")) // 湖水綠
+        colors.add(Color.parseColor("#EF5350")) // 珊瑚紅
 
-        //最终数据 PieData
+        // 餅狀圖數據集 PieDataSet
+        val pieDataSet = PieDataSet(entries, "分類佔比")
+        pieDataSet.setDrawValues(true)
+        pieDataSet.setDrawIcons(false)
+        pieDataSet.sliceSpace = 3f // 設置分塊間隔
+        pieDataSet.selectionShift = 8f // 點選彈出距離
+        pieDataSet.colors = colors.filterNotNull()
+
+        // 最終數據 PieData
         val pieData = PieData(pieDataSet)
-        pieData.setDrawValues(true) //设置是否显示数据实体(百分比，true:以下属性才有意义)
-        pieData.setValueTextColor(Color.WHITE) //设置所有DataSet内数据实体（百分比）的文本颜色
-        pieData.setValueTextSize(12f) //设置所有DataSet内数据实体（百分比）的文本字体大小
-        pieData.setValueTypeface(Typeface.DEFAULT_BOLD) //设置所有DataSet内数据实体（百分比）的文本字体样式
-        pieData.setValueFormatter(MyValueFormatter()) //设置所有DataSet内数据实体（百分比）的文本字体格式
-        mChart!!.setData(pieData)
-        mChart!!.highlightValues(null)
-        mChart!!.invalidate() //将图表重绘以显示设置的属性和数据
+        pieData.setDrawValues(true)
+        pieData.setValueTextColor(Color.WHITE)
+        pieData.setValueTextSize(13f)
+        pieData.setValueTypeface(Typeface.DEFAULT_BOLD)
+        pieData.setValueFormatter(MyValueFormatter())
+        mChart?.data = pieData
+        mChart?.highlightValues(null)
+        mChart?.animateY(1000, Easing.EaseInOutQuad)
+        mChart?.invalidate()
 
 
 //        /**/pieChart 选择监听 * /

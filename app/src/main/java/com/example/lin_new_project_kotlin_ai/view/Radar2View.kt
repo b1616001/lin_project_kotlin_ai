@@ -2,6 +2,7 @@ package com.example.lin_new_project_kotlin_ai.view
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
@@ -35,16 +36,16 @@ class Radar2View(context: Context) : View(context) {
         angle = (Math.PI * 2 / count).toFloat()
 
         polygonPaint = Paint()
-        polygonPaint.setColor(ContextCompat.getColor(context, R.color.black))
+        polygonPaint.setColor(Color.parseColor("#455A64"))
         polygonPaint.setAntiAlias(true)
         polygonPaint.setStyle(Paint.Style.STROKE)
-        polygonPaint.setStrokeWidth(0.3f)
+        polygonPaint.setStrokeWidth(2.5f)
 
         linePaint = Paint()
-        linePaint.setColor(ContextCompat.getColor(context, R.color.black))
+        linePaint.setColor(Color.parseColor("#78909C"))
         linePaint.setAntiAlias(true)
         linePaint.setStyle(Paint.Style.STROKE)
-        linePaint.setStrokeWidth(0.3f)
+        linePaint.setStrokeWidth(1.5f)
 
         txtPaint = Paint()
         txtPaint.setColor(ContextCompat.getColor(context, R.color.black))
