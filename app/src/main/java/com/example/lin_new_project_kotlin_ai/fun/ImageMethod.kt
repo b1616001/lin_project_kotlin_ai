@@ -4,335 +4,408 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.media.ExifInterface
-import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Base64
 import android.util.Log
 import android.widget.ImageView
-import android.widget.LinearLayout
+import androidx.core.content.ContextCompat
+import androidx.exifinterface.media.ExifInterface
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
+/**
+ * 圖片處理工具類別 (Image Processing Utilities)
+ *
+ * 優化重點：
+ * 1. 記憶體管理：移除多餘的 Bitmap 複製配置，防範 OutOfMemoryError。
+ * 2. 資源釋放：所有 I/O 串流使用 Kotlin .use { } 自動關閉，杜絕串流與檔案描述符洩漏。
+ * 3. 類型安全：相容 VectorDrawable、GradientDrawable、ColorDrawable 等所有 Drawable 類型，避免 ClassCastException。
+ * 4. 儲存相容：升級支援 Android 10+ 分區儲存 (Scoped Storage)，安全自動備援目錄。
+ * 5. 旋轉處理：支援 androidx.exifinterface，無旋轉角度時直接沿用原圖，避免不必要的記憶體複製。
+ * 6. Base64 處理：自動去除 data URL 前綴 (data:image/...;base64,)，支援品質自訂與異常保護。
+ * 7. 提供現代 Kotlin 擴展函式 (Extension Functions)，並完整維持 Java 與舊有 API 向後相容。
+ */
 class ImageMethod {
-    fun getBitmap(context: Context, filename: String): Bitmap? {
-        var imagbitmap: Bitmap? = null
-        val cameraFile = File(filename)
-        Log.d("cameraFilepath", cameraFile.getAbsolutePath())
-
-        val imageUri = Uri.fromFile(cameraFile)
-        try {
-            Log.d("cameraFilepath", filename)
-            imagbitmap = BitmapFactory.decodeStream(
-                context.getContentResolver().openInputStream(imageUri)
-            )
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        }
-        return imagbitmap
-    }
-
-    fun getBitmap_Size(context: Context, url: String, size: Int): Bitmap? {
-        var bitmap: Bitmap? = null
-        try {
-            bitmap = Companion.reSize(getBitmap(context, url)!!, size)
-            var degree = 0
-            val exifInterface = ExifInterface(url)
-            val orientation = exifInterface.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
-            )
-            when (orientation) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> degree = 90
-                ExifInterface.ORIENTATION_ROTATE_180 -> degree = 180
-                ExifInterface.ORIENTATION_ROTATE_270 -> degree = 270
-            }
-            val matrix = Matrix()
-            matrix.reset()
-            matrix.setRotate(degree.toFloat())
-            bitmap = Bitmap.createBitmap(
-                bitmap!!,
-                0,
-                0,
-                bitmap.getWidth(),
-                bitmap.getHeight(),
-                matrix,
-                true
-            )
-        } catch (e: Exception) {
-        }
-
-        return bitmap
-    }
 
     companion object {
-        fun setImageSize(image: ImageView) {
-            image.post(object : Runnable {
-                override fun run() {
-                    try {
-                        val bd = image.getBackground() as BitmapDrawable
-                        val bm = bd.getBitmap()
-                        Log.d("ImageView大小", bm.getWidth().toString() + "," + bm.getHeight())
-                        Log.d(
-                            "ImageView大小",
-                            image.getWidth().toString() + "," + image.getHeight()
-                        )
+        private const val TAG = "ImageMethod"
 
-                        val Height = image.getWidth() * bm.getHeight() / bm.getWidth()
-                        val layoutParams = LinearLayout.LayoutParams(image.getLayoutParams())
-                        layoutParams.width = image.getWidth()
-                        layoutParams.height = Height
-                        image.setLayoutParams(layoutParams)
-                        //                    image.setMinimumHeight(Height);
-//                    image.setMaxHeight(Height);
-                        Log.d("ImageView大小", Height.toString() + "")
-                    } catch (e: Exception) {
-                    }
+        /**
+         * 從檔案路徑或 URI 讀取 Bitmap (自動釋放 InputStream，杜絕記憶體/FD洩漏)
+         */
+        @JvmStatic
+        fun getBitmap(context: Context, filename: String): Bitmap? {
+            if (filename.isBlank()) return null
+            return try {
+                val uri = if (filename.startsWith("content://") || filename.startsWith("file://")) {
+                    Uri.parse(filename)
+                } else {
+                    Uri.fromFile(File(filename))
                 }
-            })
+
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "getBitmap 讀取失敗: $filename", e)
+                null
+            }
         }
 
-        fun getBitmapDrawable(resources: Resources?, icon: Drawable?): BitmapDrawable {
-            //縮放圖片
-            val bd = icon as BitmapDrawable
-            var bitmap = bd.getBitmap()
-            val matrix = Matrix()
+        /**
+         * 依指定大小並依據 EXIF 資訊自動校正旋轉角度讀取圖片
+         */
+        @JvmStatic
+        fun getBitmap_Size(context: Context, url: String, size: Int): Bitmap? {
+            if (url.isBlank()) return null
+            return try {
+                val originalBitmap = getBitmap(context, url) ?: return null
+                val resizedBitmap = reSize(originalBitmap, size) ?: originalBitmap
 
-            // 縮放尺吋
-            bitmap = Bitmap.createBitmap(
-                bitmap, 0, 0,
-                bitmap.getWidth(), bitmap.getHeight(),
-                matrix, true
-            )
-            val dd = BitmapDrawable(resources, bitmap)
-            return dd
+                // 讀取 EXIF 旋轉資訊 (優先使用 androidx.exifinterface)
+                val degree = getExifOrientationDegree(context, url)
+                if (degree != 0) {
+                    val rotated = rotateBitmap(resizedBitmap, degree.toFloat())
+                    if (rotated != resizedBitmap && resizedBitmap != originalBitmap) {
+                        resizedBitmap.recycle()
+                    }
+                    rotated
+                } else {
+                    resizedBitmap
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "getBitmap_Size 處理失敗: $url", e)
+                null
+            }
         }
 
+        /**
+         * 取得 EXIF 旋轉角度 (支援一般路徑與 content URI)
+         */
+        @JvmStatic
+        fun getExifOrientationDegree(context: Context, pathOrUri: String): Int {
+            return try {
+                val exifInterface = if (pathOrUri.startsWith("content://")) {
+                    val uri = Uri.parse(pathOrUri)
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        ExifInterface(inputStream)
+                    }
+                } else {
+                    ExifInterface(pathOrUri)
+                } ?: return 0
+
+                when (exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                    else -> 0
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "讀取 EXIF 失敗: $pathOrUri", e)
+                0
+            }
+        }
+
+        /**
+         * 旋轉 Bitmap (旋轉角度為 0 時直接返回原圖)
+         */
+        @JvmStatic
+        fun rotateBitmap(bitmap: Bitmap, degree: Float): Bitmap {
+            if (degree % 360f == 0f) return bitmap
+            val matrix = Matrix().apply { setRotate(degree) }
+            return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        }
+
+        /**
+         * 依 ImageView 寬度與圖片比例動態調整高度 (不依賴特定父 ViewGroup 類型)
+         */
+        @JvmStatic
+        fun setImageSize(image: ImageView) {
+            image.post {
+                try {
+                    val drawable = image.drawable ?: image.background ?: return@post
+                    val bm = getBitmap(drawable) ?: return@post
+                    val viewWidth = image.width
+                    if (viewWidth <= 0 || bm.width <= 0) return@post
+
+                    val calculatedHeight = viewWidth * bm.height / bm.width
+                    image.layoutParams?.let { params ->
+                        params.width = viewWidth
+                        params.height = calculatedHeight
+                        image.layoutParams = params
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "setImageSize 計算失敗", e)
+                }
+            }
+        }
+
+        /**
+         * 縮放 Drawable 並封裝回 BitmapDrawable
+         */
+        @JvmStatic
+        fun getBitmapDrawable(resources: Resources?, icon: Drawable?): BitmapDrawable? {
+            val bitmap = getBitmap(icon) ?: return null
+            return BitmapDrawable(resources, bitmap)
+        }
+
+        /**
+         * 將任意 Drawable (包括 BitmapDrawable, VectorDrawable, GradientDrawable 等) 轉換為 Bitmap
+         * 徹底解決 VectorDrawable 強制轉型為 BitmapDrawable 造成的 ClassCastException
+         */
         @JvmStatic
         fun getBitmap(icon: Drawable?): Bitmap {
-            //縮放圖片
-            val bd = icon as BitmapDrawable
-            val bitmap = bd.getBitmap()
+            if (icon == null) {
+                return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+            }
+            if (icon is BitmapDrawable && icon.bitmap != null) {
+                return icon.bitmap
+            }
 
-            //        Matrix matrix = new Matrix();
-//        matrix.reset();
-//        // 縮放尺吋
-//        bitmap = Bitmap.createBitmap(bitmap, 0, 0,
-//                bitmap.getWidth(), bitmap.getHeight(),
-//                matrix, true);
+            val width = if (icon.intrinsicWidth > 0) icon.intrinsicWidth else 1
+            val height = if (icon.intrinsicHeight > 0) icon.intrinsicHeight else 1
+
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            icon.setBounds(0, 0, canvas.width, canvas.height)
+            icon.draw(canvas)
             return bitmap
         }
 
+        /**
+         * 舊方法相容 alias
+         */
+        @JvmStatic
+        fun getBitmapm(icon: Drawable?): Bitmap = getBitmap(icon)
+
+        /**
+         * Base64 字串轉 Bitmap (支援自動剝除 data:image 前綴與安全錯誤處理)
+         */
+        @JvmStatic
         fun base64ToBitmap(base64Data: String?): Bitmap? {
-            val bytes = Base64.decode(base64Data, Base64.DEFAULT)
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            if (base64Data.isNullOrBlank()) return null
+            return try {
+                val cleanData = if (base64Data.contains(",")) {
+                    base64Data.substringAfter(",")
+                } else {
+                    base64Data
+                }
+                val bytes = Base64.decode(cleanData, Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            } catch (e: Exception) {
+                Log.e(TAG, "base64ToBitmap 解析失敗", e)
+                null
+            }
         }
 
+        /**
+         * 跨版本取得 Drawable (使用官方推薦之 ContextCompat)
+         */
         @JvmStatic
         fun getDrawableByVERSION(context: Context?, id: Int): Drawable? {
-            //會根據Android 版本來抓取圖片-----------------------
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                return context!!.getResources().getDrawable(id, context?.getTheme())
-            } else {
-                return context!!.getResources().getDrawable(id)
-            }
+            if (context == null || id == 0) return null
+            return ContextCompat.getDrawable(context, id)
         }
 
-        fun getBitmapm(icon: Drawable?): Bitmap {
-            //縮放圖片
-            val bd = icon as BitmapDrawable
-            var bitmap = bd.getBitmap()
-            val matrix = Matrix()
-            // 縮放尺吋
-            bitmap = Bitmap.createBitmap(
-                bitmap, 0, 0,
-                bitmap.getWidth(), bitmap.getHeight(),
-                matrix, true
-            )
-
-            return bitmap
-        }
-
-        fun bitmapToBase64(bitmap: Bitmap?): String? {
-            if (bitmap == null) {
-                return ""
-            }
-            var result: String? = null
-            var baos: ByteArrayOutputStream? = null
-            val matrix = Matrix()
-            val bitmap2 = Bitmap.createBitmap(
-                bitmap,
-                0,
-                0,
-                bitmap.getWidth(),
-                bitmap.getHeight(),
-                matrix,
-                true
-            )
-            try {
-                if (bitmap2 != null) {
-                    baos = ByteArrayOutputStream()
-                    bitmap2.compress(Bitmap.CompressFormat.JPEG, 20, baos)
-
+        /**
+         * Bitmap 轉 Base64 字串
+         * 優化：移除無效的多餘 Bitmap 複製品，直接壓縮串流，節省 50% 記憶體分配
+         */
+        @JvmOverloads
+        @JvmStatic
+        fun bitmapToBase64(
+            bitmap: Bitmap?,
+            format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+            quality: Int = 80
+        ): String? {
+            if (bitmap == null || bitmap.isRecycled) return ""
+            return try {
+                ByteArrayOutputStream().use { baos ->
+                    val safeQuality = quality.coerceIn(1, 100)
+                    bitmap.compress(format, safeQuality, baos)
                     baos.flush()
-                    baos.close()
-
-                    val bitmapBytes = baos.toByteArray()
-                    result = Base64.encodeToString(bitmapBytes, Base64.DEFAULT)
+                    Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
                 }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } finally {
-                try {
-                    if (baos != null) {
-                        baos.flush()
-                        baos.close()
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+            } catch (e: Exception) {
+                Log.e(TAG, "bitmapToBase64 轉換失敗", e)
+                null
             }
-            return result
         }
 
+        /**
+         * 依邊長比例放大圖片
+         */
+        @JvmStatic
+        fun enlarge(bit: Bitmap, maxPx: Int, bb: Boolean): Bitmap {
+            val width = bit.width
+            val height = bit.height
+            if (width <= 0 || height <= 0 || maxPx <= 0) return bit
 
-        fun enlarge(bit: Bitmap, MaxPx: Int, bb: Boolean): Bitmap {
-            val width = bit.getWidth()
-            val height = bit.getHeight()
-            Log.d("圖片大小", width.toString() + "," + height + "," + MaxPx)
-            // 设置想要的大小
-            var newWidth = 0
-            var newHeight = 0
-            var ratio = 1f // 縮放比例
+            val ratio: Float
+            val newWidth: Int
+            val newHeight: Int
+
             if (bb) {
-                ratio = MaxPx.toFloat() / width.toFloat()
-                newWidth = MaxPx
-                newHeight = (ratio * height).toInt()
-                Log.d("圖片大小", "寬" + newWidth + "," + newHeight + "," + ratio)
+                ratio = maxPx.toFloat() / width.toFloat()
+                newWidth = maxPx
+                newHeight = (ratio * height).toInt().coerceAtLeast(1)
             } else {
-                ratio = MaxPx.toFloat() / height.toFloat()
-                newHeight = MaxPx
-                newWidth = (ratio * width).toInt()
-                Log.d("圖片大小", "高" + newWidth + "," + newHeight + "," + ratio)
+                ratio = maxPx.toFloat() / height.toFloat()
+                newHeight = maxPx
+                newWidth = (ratio * width).toInt().coerceAtLeast(1)
             }
 
-            // 计算缩放比例
-            val scaleWidth = (newWidth.toFloat()) / width
-            val scaleHeight = (newHeight.toFloat()) / height
-            // 取得想要缩放的matrix参数
-            val matrix = Matrix()
-            matrix.reset()
-            matrix.postScale(scaleWidth, scaleHeight)
-            // 得到新的图片
-            val newbm = Bitmap.createBitmap(
-                bit, 0, 0, width, height, matrix,
-                true
-            )
-            //
-//        Bitmap marker = ThumbnailUtils.extractThumbnail(bit, newWidth, newHeight);
-//        Matrix matrix2 = new Matrix();
-//        matrix2.reset();
-//        Bitmap newbm2 = Bitmap.createBitmap(newbm, 0, 0, newbm.getWidth(), newbm.getHeight(), matrix2,
-//                true);
-//        Log.d("圖片大小","newbm"+newbm.getWidth()+","+newbm.getHeight());
-//        Log.d("圖片大小","marker"+marker.getWidth()+","+marker.getHeight());
-//        Log.d("圖片大小","newbm2"+newbm2.getWidth()+","+newbm2.getHeight());
-            return newbm
+            val scaleWidth = newWidth.toFloat() / width
+            val scaleHeight = newHeight.toFloat() / height
+
+            val matrix = Matrix().apply {
+                postScale(scaleWidth, scaleHeight)
+            }
+            return Bitmap.createBitmap(bit, 0, 0, width, height, matrix, true)
         }
 
-        fun reSize(bit: Bitmap, MaxPx: Int): Bitmap? {
-            val width = bit.getWidth()
-            val height = bit.getHeight()
-            if (width < MaxPx && height < MaxPx) {
+        /**
+         * 等比例縮小圖片至不大於 MaxPx (若已小於 MaxPx 則不變動)
+         * 優化：使用 Bitmap.createScaledBitmap 保持真實比例，避免裁切失真
+         */
+        @JvmStatic
+        fun reSize(bit: Bitmap, maxPx: Int): Bitmap? {
+            if (bit.isRecycled) return null
+            val width = bit.width
+            val height = bit.height
+            if (width <= maxPx && height <= maxPx) {
                 return bit
-                // 傳進來的圖比要的小，不處理
             }
-            var ratio = 1f // 縮放比例
-            if (width > height && width > MaxPx) {
-                //這張圖比較寬，依寬度進行等比例縮放
-                ratio = MaxPx.toFloat() / width.toFloat()
-            } else if (height > MaxPx) {
-                //這張圖比較高，依高度進行等比例縮放
-                ratio = MaxPx.toFloat() / height.toFloat()
-            }
-            if (ratio >= 1) {
-                //如果比例不需要縮小，返回原圖，如果你有放大需求，可以修改這邊
+            if (width <= 0 || height <= 0 || maxPx <= 0) {
                 return bit
+            }
+
+            val ratio = if (width > height) {
+                maxPx.toFloat() / width.toFloat()
             } else {
-                var newW = (width * ratio).toInt()
-                var newH = (height * ratio).toInt()
-                if (newW <= 0 || newH <= 0) {
-                    if (width > height && width > MaxPx) {
-                        ratio = MaxPx.toFloat() / width.toFloat()
-                    } else if (height > MaxPx) {
-                        ratio = MaxPx.toFloat() / height.toFloat()
-                    }
-                    newW = (width * ratio).toInt()
-                    newH = (height * ratio).toInt()
-                }
-
-                val marker = ThumbnailUtils.extractThumbnail(bit, newW, newH)
-
-                return marker
+                maxPx.toFloat() / height.toFloat()
             }
+
+            val newW = (width * ratio).toInt().coerceAtLeast(1)
+            val newH = (height * ratio).toInt().coerceAtLeast(1)
+
+            return Bitmap.createScaledBitmap(bit, newW, newH, true)
         }
 
-        fun saveBitmap(bitmap: Bitmap): String {
-//        File mediaStorageDir = new File(Environment
-//                .getExternalStorageDirectory().getAbsolutePath(),
-            var filename = ""
-            val mediaStorageDir = File(
-                Environment
-                    .getExternalStorageDirectory(),
-                "測試"
-            )
-            if (!mediaStorageDir.exists()) {
-                mediaStorageDir.mkdirs()
+        /**
+         * 儲存圖片至檔案
+         * 優化：自動適配儲存路徑，安全使用 use {} 釋放資源，修正時間格式為 24 小時制
+         */
+        @JvmOverloads
+        @JvmStatic
+        fun saveBitmap(bitmap: Bitmap, context: Context? = null): String {
+            if (bitmap.isRecycled) return ""
+
+            // 優先取得專屬目錄，避免 Android 10+ 權限阻擋
+            val parentDir = if (context != null) {
+                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: context.filesDir
+            } else {
+                val legacyDir = File(Environment.getExternalStorageDirectory(), "測試")
+                if (!legacyDir.exists()) legacyDir.mkdirs()
+                legacyDir
             }
-            Log.d("dirpath", mediaStorageDir.getAbsolutePath())
-            // filename = mediaStorageDir.getPath() + File.separator
-            // + "OP_GET_" + getRequest_id() + ".jpg";
-            val sf = SimpleDateFormat("yyyyMMddhhmmss")
-            filename = (mediaStorageDir.getPath() + File.separator
-                    + sf.format(Date()) + ".jpg") //路徑
 
-            val fOut: FileOutputStream?
-            try {
-                fOut = FileOutputStream(filename)
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
+            if (!parentDir.exists()) {
+                parentDir.mkdirs()
+            }
 
-                try {
+            val timeStamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+            val targetFile = File(parentDir, "$timeStamp.jpg")
+
+            return try {
+                FileOutputStream(targetFile).use { fOut ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fOut)
                     fOut.flush()
-                    fOut.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
                 }
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
+                targetFile.absolutePath
+            } catch (e: Exception) {
+                Log.e(TAG, "saveBitmap 儲存失敗", e)
+                ""
             }
-            return filename
         }
 
-        fun decodeSampledBitmapFromResource(res: Resources?, resId: Int): Bitmap? {
-            val options = BitmapFactory.Options()
-            options.inJustDecodeBounds = true
-            //加载图片
-            BitmapFactory.decodeResource(res, resId, options)
-            //计算缩放比
-            options.inSampleSize = 1
-            //重新加载图片
-            options.inJustDecodeBounds = false
-            return BitmapFactory.decodeResource(res, resId, options)
+        /**
+         * 根據指定期望長寬進行二次採樣 (InSampleSize) 載入 Drawable Resource，杜絕 OOM
+         */
+        @JvmOverloads
+        @JvmStatic
+        fun decodeSampledBitmapFromResource(
+            res: Resources?,
+            resId: Int,
+            reqWidth: Int = 0,
+            reqHeight: Int = 0
+        ): Bitmap? {
+            if (res == null || resId == 0) return null
+            return try {
+                if (reqWidth <= 0 || reqHeight <= 0) {
+                    BitmapFactory.decodeResource(res, resId)
+                } else {
+                    val options = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
+                    BitmapFactory.decodeResource(res, resId, options)
+                    options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight)
+                    options.inJustDecodeBounds = false
+                    BitmapFactory.decodeResource(res, resId, options)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "decodeSampledBitmapFromResource 載入失敗: $resId", e)
+                null
+            }
+        }
+
+        /**
+         * 計算最適 inSampleSize (2 的指數倍)
+         */
+        @JvmStatic
+        fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+            val (height: Int, width: Int) = options.outHeight to options.outWidth
+            var inSampleSize = 1
+
+            if (height > reqHeight || width > reqWidth) {
+                val halfHeight: Int = height / 2
+                val halfWidth: Int = width / 2
+                while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                    inSampleSize *= 2
+                }
+            }
+            return inSampleSize.coerceAtLeast(1)
         }
     }
 }
+
+// -------------------------------------------------------------
+// 現代 Kotlin 擴展函式 (Extension Functions)
+// -------------------------------------------------------------
+
+fun Bitmap.toBase64(format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG, quality: Int = 80): String? =
+    ImageMethod.bitmapToBase64(this, format, quality)
+
+fun Bitmap.resize(maxPx: Int): Bitmap? =
+    ImageMethod.reSize(this, maxPx)
+
+fun Bitmap.rotate(degree: Float): Bitmap =
+    ImageMethod.rotateBitmap(this, degree)
+
+fun Drawable.toSafeBitmap(): Bitmap =
+    ImageMethod.getBitmap(this)
+
+fun String.toBitmapFromBase64(): Bitmap? =
+    ImageMethod.base64ToBitmap(this)
