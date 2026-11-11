@@ -4,31 +4,64 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="@color/black"
-    android:layout_height="50dp">
+    android:layout_height="62dp"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/bg_item_drag"
+    android:paddingHorizontal="14dp">
 
-
-    <TextView
-        android:id="@+id/tv_id"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
+    <!-- Leading Item Icon -->
+    <ImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:src="@drawable/ic_format_list_bulleted"
+        app:tint="#019889"
+        android:contentDescription="項目圖示"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:textColor="@color/white"
-        android:textSize="20dp"
-        android:layout_marginStart="20dp"
-         />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- ID Badge / TextView (Preserves @+id/tv_id) -->
+    <TextView
+        android:id="@+id/tv_id"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:textColor="#019889"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/iv_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Name TextView (Preserves @+id/tv_name) -->
     <TextView
         android:id="@+id/tv_name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@+id/tv_id"
-        app:layout_constraintTop_toTopOf="@+id/tv_id"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_id"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="8dp"
         android:textColor="@color/white"
-        android:textSize="20dp"
-        android:layout_marginStart="20dp"
-         />
+        android:textSize="17sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/tv_id"
+        app:layout_constraintEnd_toStartOf="@+id/iv_drag_handle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Drag Handle Icon (Preserves user request: item 增加icon 長按才可以上下拖曳) -->
+    <ImageView
+        android:id="@+id/iv_drag_handle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_drag_indicator"
+        app:tint="#80CBC4"
+        android:contentDescription="拖曳手柄 (長按上下拖曳)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

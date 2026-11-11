@@ -3,6 +3,7 @@ package com.example.lin_new_project_kotlin_ai.fragment
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lin_new_project_kotlin_ai.R
@@ -14,11 +15,10 @@ import com.example.lin_new_project_kotlin_ai.`fun`.RecyclerViewMethed
 import com.example.lin_new_project_kotlin_ai.`fun`.SimpleItemTouchHelper
 import com.example.lin_new_project_kotlin_ai.`fun`.SimpleItemTouchHelperCallback
 import com.example.lin_new_project_kotlin_ai.viewBinding.BaseBindingFragment
-import com.google.gson.Gson
-
 
 class SimpleItemFragment : BaseBindingFragment<FragmentSimpleItemBinding?>() {
     private var recyclerAdapter: RecyclerAdapter? = null
+    private var itemTouchHelper: SimpleItemTouchHelper? = null
 
     override fun onCreateViewBinding(layoutInflater: LayoutInflater): FragmentSimpleItemBinding {
         return FragmentSimpleItemBinding.inflate(layoutInflater)
@@ -30,102 +30,105 @@ class SimpleItemFragment : BaseBindingFragment<FragmentSimpleItemBinding?>() {
     }
 
     private fun initView() {
+        val binding = getBinding() ?: return
+
+        // 頂部返回導覽
+        binding.btnBack.setOnClickListener {
+            findNavController().popBackStack()
+        }
+
+        // 初始化 RecyclerView
         RecyclerViewMethed.init_VERTICAL(
-            getActivity(), getBinding()!!.recyclerView,
+            activity, binding.recyclerView,
             true, 0, CommonUtils.getColorByVERSION(R.color.white), true, true
         )
-        val list: MutableList<RecyclerData> = ArrayList<RecyclerData>()
+
+        // 產生列表資料
+        val list: MutableList<RecyclerData> = ArrayList()
         for (i in 0..49) {
-            val recyclerData: RecyclerData = RecyclerData()
-            recyclerData.setId(i)
-            recyclerData.setName("A" + i)
+            val recyclerData = RecyclerData()
+            recyclerData.id = i
+            recyclerData.name = "項目 A$i"
             list.add(recyclerData)
         }
-        recyclerAdapter = RecyclerAdapter(getContext(), list)
-        recyclerAdapter!!.setOnItemClickListener(object :RecyclerAdapter.OnItemClickListener{
+        binding.tvItemCount.text = "${list.size} 項"
+
+        val adapter = RecyclerAdapter(context, list)
+        recyclerAdapter = adapter
+
+        adapter.setOnItemClickListener(object : RecyclerAdapter.OnItemClickListener {
             override fun OnItemClick(data: RecyclerData?, position: Int) {
-                showToast(Gson().toJson(data))
+                showToast("點擊: ${data?.name ?: ""} (序號: ${data?.id})")
             }
         })
 
-        getBinding()!!.recyclerView.setAdapter(recyclerAdapter)
-        val itemTouchHelper: SimpleItemTouchHelper =
-            SimpleItemTouchHelper(SimpleItemTouchHelperCallback(object :
-                SimpleItemTouchHelperCallback.Sthc_Movement {
-                override fun onMove(
-                    viewHolder: RecyclerView.ViewHolder?,
-                    target: RecyclerView.ViewHolder?
-                ) {
-                    val fromPos: Int = viewHolder!!.getAdapterPosition()
-                    val toPos: Int = target!!.getAdapterPosition()
+        // 建立長按上下拖曳 Callback
+        val callback = SimpleItemTouchHelperCallback(object :
+            SimpleItemTouchHelperCallback.Sthc_Movement {
+            override fun onMove(
+                viewHolder: RecyclerView.ViewHolder?,
+                target: RecyclerView.ViewHolder?
+            ) {
+                if (viewHolder == null || target == null) return
+                val fromPos = viewHolder.adapterPosition
+                val toPos = target.adapterPosition
 
-                    var dataIndexFrom = fromPos
-                    var dataIndexTo = toPos
-
-                    //                Log.d(TAG, "onItemMove: from: " + fromPos + ", to: " + toPos + ", size: " + routeSectionList.size());
-                    if (recyclerAdapter!!.isReverse) {
-                        val index = list.size - 1
-                        dataIndexFrom = index - fromPos
-                        dataIndexTo = index - toPos
-                        //                    Log.d(TAG, "com.example.lin_new_project_kotlin.data index: from: " + dataIndexFrom + ", to: " + dataIndexTo + ", index: " + index);
-                    }
-
-                    /**< 禁止拖动到新增菜单的底部 */
-                    if (toPos >= (list.size) || toPos < 0) {
-                        return
-                    }
-
-                    val holder1 = viewHolder as RecyclerAdapter.MyRecyclerViewHolder
-                    val holder2 = target as RecyclerAdapter.MyRecyclerViewHolder
-
-                    //                holder1.binding.tvOrder.setText(String.valueOf(toPos + 1));
-//                holder2.binding.tvOrder.setText(String.valueOf(fromPos + 1));
-//
-//                RouteSection data1 = routeSectionList.get(fromPos);
-//                RouteSection data2 = routeSectionList.get(toPos);
-//                int o1 = data1.getOrder();
-//                int o2 = data2.getOrder();
-//                data1.setOrder(o2);
-//                data2.setOrder(o1);
-//                routeSectionList.set(fromPos, data2);
-//                routeSectionList.set(toPos, data1);
-                    holder1.binding.tvId.setText(dataIndexTo.toString())
-                    holder2.binding.tvId.setText(dataIndexFrom.toString())
-
-                    val data1: RecyclerData = list.get(dataIndexFrom)
-                    val data2: RecyclerData = list.get(dataIndexTo)
-                    val o1: Int = data1.getId()
-                    val o2: Int = data2.getId()
-                    data1.setId(o2)
-                    data2.setId(o1)
-                    list.set(dataIndexFrom, data2)
-                    list.set(dataIndexTo, data1)
-
-
-                    //                Collections.swap(paragraphsDataList, fromPos, toPos);
-                    recyclerAdapter!!.notifyItemMoved(fromPos, toPos)
-                }
-
-                override fun onSwiped(viewHolder: RecyclerView.ViewHolder?, direction: Int) {
+                if (fromPos < 0 || toPos < 0 || fromPos >= list.size || toPos >= list.size) {
                     return
                 }
 
-                /**
-                 * 控制每个条目的可操作状态 - 滑动，拖拽等  对应->getMovementFlags
-                 * @param position
-                 * @return
-                 */
-                override fun getFlag(position: Int): IntArray? {
-                    if (position == (list.size)) {
-                        return intArrayOf(0, 0)
-                    } else {
-                        return intArrayOf(
-                            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-                            ItemTouchHelper.UP
-                        )
-                    }
+                val holder1 = viewHolder as? RecyclerAdapter.MyRecyclerViewHolder
+                val holder2 = target as? RecyclerAdapter.MyRecyclerViewHolder
+
+                holder1?.binding?.tvId?.text = toPos.toString()
+                holder2?.binding?.tvId?.text = fromPos.toString()
+
+                val data1 = list[fromPos]
+                val data2 = list[toPos]
+                val o1 = data1.id
+                val o2 = data2.id
+                data1.id = o2
+                data2.id = o1
+                list[fromPos] = data2
+                list[toPos] = data1
+
+                adapter.notifyItemMoved(fromPos, toPos)
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder?, direction: Int) {
+                // 停用滑動刪除，僅允許長按上下拖曳
+            }
+
+            override fun getFlag(position: Int): IntArray {
+                return if (position in list.indices) {
+                    // dragFlags: 僅允許 UP 與 DOWN，swipeFlags: 0 (無滑動)
+                    intArrayOf(
+                        ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+                        0
+                    )
+                } else {
+                    intArrayOf(0, 0)
                 }
-            }))
-        itemTouchHelper.attachToRecyclerView(getBinding()!!.recyclerView)
+            }
+        })
+
+        val touchHelper = SimpleItemTouchHelper(callback)
+        itemTouchHelper = touchHelper
+        touchHelper.attachToRecyclerView(binding.recyclerView)
+
+        // 綁定長按拖曳手柄圖示事件
+        adapter.setOnStartDragListener(object : RecyclerAdapter.OnStartDragListener {
+            override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) {
+                touchHelper.startDrag(viewHolder)
+            }
+        })
+
+        binding.recyclerView.adapter = adapter
+    }
+
+    override fun onDestroyView() {
+        itemTouchHelper = null
+        recyclerAdapter = null
+        super.onDestroyView()
     }
 }
