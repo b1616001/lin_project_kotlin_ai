@@ -4,37 +4,159 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  >
+    android:background="#F4F6F8">
 
+    <!-- Top Navigation Header -->
+    <LinearLayout
+        android:id="@+id/layoutHeader"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/white"
+        android:elevation="3dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="返回"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#212121" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvFragmentTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ViewPager 頁面展示"
+                android:textColor="#212121"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="多頁切換、生命週期與過渡動畫"
+                android:textColor="#757575"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Auto-Play Toggle Button -->
+        <ImageButton
+            android:id="@+id/btnAutoPlay"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="自動輪播"
+            android:padding="10dp"
+            android:src="@drawable/ic_play_arrow"
+            app:tint="#019889" />
+
+        <!-- Current Page Badge -->
+        <TextView
+            android:id="@+id/tvPageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_badge_pill"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="1 / 3"
+            android:textColor="#019889"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- TabLayout (Preserves @+id/tabLayout) -->
     <com.google.android.material.tabs.TabLayout
-        app:tabMode="fixed"
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        app:tabIndicatorHeight="4dp"
-        app:tabMaxWidth="280dp"
-        app:tabGravity="center"
-        app:tabTextAppearance="@style/TabFontStyle"
-        app:tabSelectedTextColor="@color/color_E4002B"
-        app:tabIndicatorColor="@color/color_E4002B"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="20dp"/>
+        android:layout_height="50dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@+id/layoutHeader"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="#019889"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="3dp"
+        app:tabMode="fixed"
+        app:tabRippleColor="#20019889"
+        app:tabSelectedTextColor="#019889"
+        app:tabTextColor="#78909C" />
 
+    <!-- Divider (Preserves @+id/image) -->
     <ImageView
         android:id="@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/red"
-        app:layout_constraintTop_toBottomOf="@+id/tabLayout"/>
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        app:layout_constraintTop_toBottomOf="@+id/tabLayout" />
 
+    <!-- ViewPager (Preserves @+id/viewPager) -->
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewPager"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/layoutBottomBar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/image"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image" />
+
+    <!-- Bottom Quick Navigation Bar -->
+    <LinearLayout
+        android:id="@+id/layoutBottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:background="@color/white"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/btnPrev"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_button_secondary"
+            android:drawableStart="@drawable/ic_chevron_left"
+            android:paddingHorizontal="12dp"
+            android:text="上一頁"
+            android:textColor="#37474F"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvCurrentStep"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="紅色主題"
+            android:textColor="#37474F"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_button_secondary"
+            android:drawableEnd="@drawable/ic_chevron_right"
+            android:paddingHorizontal="12dp"
+            android:text="下一頁"
+            android:textColor="#37474F"
+            android:textSize="12sp" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
