@@ -119,9 +119,18 @@ object PopupWindowManager {
     /**
      * 展示通用文字彈窗 (HomeFragment #19)
      */
-    fun showTextPopupWindow() {
-        val context = MainActivity.mainActivity ?: MyApplication.getInstance().applicationContext
-        val popup = TextPopupWindow(context)
+    @JvmOverloads
+    fun showTextPopupWindow(
+        context: Context = MainActivity.mainActivity ?: MyApplication.getInstance().applicationContext,
+        title: String = "自定義彈窗通知",
+        message: String? = null,
+        onConfirm: (() -> Unit)? = null
+    ) {
+        val popup = if (message != null) {
+            TextPopupWindow(context, titleText = title, messageText = message, onConfirmAction = onConfirm)
+        } else {
+            TextPopupWindow(context)
+        }
         showPopup(context, popup, showDarkBg = true, gravity = Gravity.CENTER)
     }
 

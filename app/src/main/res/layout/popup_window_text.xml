@@ -1,17 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="300dp"
-    android:layout_height="500dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/panel_06">
-    <ImageButton
-        android:id="@+id/imgClosed"
+    android:layout_width="320dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_popup_dialog"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Header: Icon, Title and Close Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="彈窗圖示"
+            android:src="@drawable/ic_note_file" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:textColor="@color/white"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            tools:text="自定義彈窗通知" />
+
+        <ImageButton
+            android:id="@+id/imgClosed"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="關閉"
+            android:padding="6dp"
+            android:src="@drawable/btn_closed_defaul_xml" />
+    </LinearLayout>
+
+    <!-- Subtitle / Tag Pill -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/btn_closed_defaul_xml"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_badge_pill"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="3dp">
+
+        <TextView
+            android:id="@+id/tvTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PopupWindow 互動示範"
+            android:textColor="#03DAC5"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="12dp"
+        android:background="#2E3238" />
+
+    <!-- Message Content Box -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="180dp">
+
+        <TextView
+            android:id="@+id/tvContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:textColor="#E0E0E0"
+            android:textSize="14sp"
+            tools:text="這是一個自定義的 PopupWindow 彈窗元件，支援硬體加速平滑動畫、暗色遮罩聯動以及生命週期自動檢查。\n\n您可以使用此彈窗作為公告提示、功能說明或確認選單！" />
+    </ScrollView>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="12dp"
+        android:background="#2E3238" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCopy"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_btn_cancel"
+            android:minWidth="60dp"
+            android:paddingHorizontal="10dp"
+            android:text="複製"
+            android:textColor="#03DAC5"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_btn_cancel"
+            android:minWidth="60dp"
+            android:paddingHorizontal="12dp"
+            android:text="關閉"
+            android:textColor="#B0BEC5"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_btn_primary"
+            android:minWidth="76dp"
+            android:paddingHorizontal="14dp"
+            android:text="我知道了"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

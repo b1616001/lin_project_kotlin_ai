@@ -1,58 +1,372 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  >
+    android:background="#121212"
+    android:fillViewport="true">
 
-
-
-
-    <EditText
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:id="@+id/ed_qrcode"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="text"
-        android:padding="10dp"
-        android:textColor="@color/black"
-        android:background="@color/white"
-        android:textSize="20dp"
-      />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        app:layout_constraintTop_toBottomOf="@+id/ed_qrcode"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:id="@+id/tv_qrcode"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="產出Qrcode"
-       android:gravity="center"
-        android:background="@color/red"
-        android:textColor="@color/white"
-        android:padding="10dp"
-        android:textSize="20dp"/>
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_qrcode"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Top Header Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp">
+
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:contentDescription="QR Code 圖示"
+                android:src="@drawable/ic_qr_code" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="QR Code 與條碼產生器"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="支援自訂顏色、嵌入 Logo、一鍵分享與常用範本"
+                    android:textColor="#9AA0A6"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Input & Settings Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <!-- Presets Row -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="快速範本 (Presets)"
+                android:textColor="#9AA0A6"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chip_preset_url"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="🌐 網址"
+                    android:textColor="#E0E0E0"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chip_preset_wifi"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="📶 Wi-Fi"
+                    android:textColor="#E0E0E0"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chip_preset_vcard"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="👤 名片"
+                    android:textColor="#E0E0E0"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chip_preset_text"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="📝 訊息"
+                    android:textColor="#E0E0E0"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Text Input -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="欲編碼內容 (Content)"
+                android:textColor="#E0E0E0"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/ed_qrcode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_edit_text"
+                android:hint="輸入文字、網址或代碼..."
+                android:inputType="textMultiLine"
+                android:maxLines="4"
+                android:minLines="2"
+                android:padding="12dp"
+                android:textColor="@color/white"
+                android:textColorHint="#757575"
+                android:textSize="14sp" />
+
+            <!-- Options: Format & Logo -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <RadioGroup
+                    android:id="@+id/rg_code_type"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rb_type_qr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="QR Code"
+                        android:textColor="#E0E0E0"
+                        android:textSize="13sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_type_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="一維條碼"
+                        android:textColor="#E0E0E0"
+                        android:textSize="13sp" />
+                </RadioGroup>
+
+                <CheckBox
+                    android:id="@+id/cb_add_logo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="嵌入 Logo"
+                    android:textColor="#03DAC5"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Color Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="條碼顏色 (Color Scheme)"
+                android:textColor="#9AA0A6"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chip_color_black"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="⬛ 經典黑"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chip_color_teal"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="🟩 翡翠綠"
+                    android:textColor="#019889"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chip_color_blue"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="🟦 科技藍"
+                    android:textColor="#29B6F6"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chip_color_red"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="🟥 珊瑚紅"
+                    android:textColor="#EF5350"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Generate Button Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_qrcode"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_primary"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:text="✨ 產出 Qrcode"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_clear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_btn_cancel"
+                    android:minWidth="70dp"
+                    android:text="清空"
+                    android:textColor="#B0BEC5"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Preview Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="產出預覽 (Preview)"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_share"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_btn_primary"
+                    android:minWidth="60dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="分享圖片"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btn_copy_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_btn_cancel"
+                    android:minWidth="60dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="複製文字"
+                    android:textColor="#03DAC5"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- White Quiet-zone Container for reliable camera scanning -->
+            <FrameLayout
+                android:layout_width="260dp"
+                android:layout_height="260dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_qr_display"
+                android:padding="16dp">
+
+                <ImageView
+                    android:id="@+id/image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="產生的條碼或二維碼"
+                    android:scaleType="fitCenter"
+                    tools:src="@drawable/icon_red" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tv_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="點擊上方「產出 Qrcode」即可即時產出圖像"
+                android:textColor="#9AA0A6"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>
