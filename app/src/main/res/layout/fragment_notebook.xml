@@ -1,64 +1,344 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  >
+    android:background="#121212"
+    android:fillViewport="true">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:background="@color/blue"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <TextView
+        <!-- Top Header Card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/textView"
-            android:text="儲存檔案資料範例"
-            android:gravity="center"
-            android:textSize="18sp"
-            android:textColor="@color/white"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="20dp" />
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp">
 
-        <EditText
+            <ImageView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:contentDescription="記事本圖示"
+                android:src="@drawable/ic_note_file" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="記事本檔案儲存與讀取"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_storage_path"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="middle"
+                    android:singleLine="true"
+                    android:textColor="#9AA0A6"
+                    android:textSize="11sp"
+                    tools:text="路徑: /Android/data/.../files/Fiction" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Editor Card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:background="@color/white"
-            android:padding="10dp"
-            android:ems="10"
-            android:id="@+id/ed_text"
-            android:hint="輸入檔名" />
+            android:layout_marginTop="12dp"
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:orientation="vertical"
+            android:padding="14dp">
 
-        <Button
-            android:text="讀取資料"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="檔案名稱 (File Name)"
+                android:textColor="#E0E0E0"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Filename Input -->
+            <EditText
+                android:id="@+id/ed_text"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_edit_text"
+                android:hint="請輸入檔案名稱，例如: note_01.txt"
+                android:imeOptions="actionNext"
+                android:inputType="textNoSuggestions"
+                android:paddingHorizontal="12dp"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="#757575"
+                android:textSize="14sp" />
+
+            <!-- Templates Row -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="快速範本 (Quick Templates)"
+                android:textColor="#9AA0A6"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chip_plain"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="📝 一般文字"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/chip_todo"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="☑️ 待辦清單"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/chip_json"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_template"
+                    android:gravity="center"
+                    android:text="⚙️ JSON 資料"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Note Content Input -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="筆記內容 (Content)"
+                    android:textColor="#E0E0E0"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_char_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#9AA0A6"
+                    android:textSize="11sp"
+                    android:text="0 字元" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/ed_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_edit_text"
+                android:gravity="top|start"
+                android:hint="在此輸入欲儲存的筆記內容..."
+                android:inputType="textMultiLine"
+                android:minLines="4"
+                android:maxLines="8"
+                android:padding="12dp"
+                android:scrollbars="vertical"
+                android:textColor="@color/white"
+                android:textColorHint="#757575"
+                android:textSize="14sp" />
+
+            <!-- Action Buttons Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_deposit"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1.2"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="💾 存入資料"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_read"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_cancel"
+                    android:text="📖 讀取資料"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/btn_clear"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="0.8"
+                    android:background="@drawable/bg_btn_cancel"
+                    android:text="清空"
+                    android:textColor="#B0BEC5"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Preview Card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btn_read" />
+            android:layout_marginTop="12dp"
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:orientation="vertical"
+            android:padding="14dp">
 
-        <Button
-            android:text="存入資料"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📄 筆記內容預覽 (Preview)"
+                    android:textColor="#E0E0E0"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_copy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_btn_cancel"
+                    android:paddingHorizontal="10dp"
+                    android:text="複製內容"
+                    android:textColor="#03DAC5"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_txt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_edit_text"
+                android:fadeScrollbars="false"
+                android:fontFamily="monospace"
+                android:gravity="top|start"
+                android:lineSpacingExtra="3dp"
+                android:minLines="3"
+                android:padding="12dp"
+                android:scrollbars="vertical"
+                android:text="尚未載入檔案內容"
+                android:textColor="#03DAC5"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Saved Notes List Card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btn_deposit" />
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/panel_bg_all_20_1f1f1f"
+            android:orientation="vertical"
+            android:padding="14dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tv_txt"
-            android:gravity="center"
-            android:textSize="18sp"
-            android:scrollbars="vertical"
-            android:fadeScrollbars="false"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="20dp"
-            android:padding="10dp"
-            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_notes_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📁 已儲存筆記清單 (0)"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btn_refresh_list"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="6dp"
+                    android:text="🔄 重新整理"
+                    android:textColor="#019889"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_empty_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="6dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="目前尚無儲存的筆記檔案\n輸入檔案名稱與內容後點擊「存入資料」"
+                android:textColor="#757575"
+                android:textSize="13sp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_notebook_note"
+                tools:visibility="visible" />
+        </LinearLayout>
+
     </LinearLayout>
 
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
