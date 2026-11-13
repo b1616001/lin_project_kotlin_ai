@@ -1,14 +1,512 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  >
-    <pl.droidsonroids.gif.GifImageView
-        app:layout_constraintTop_toTopOf="parent"
+    android:background="#F5F7FA">
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:src="@drawable/mmm" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
+        <!-- Top Header Bar -->
+        <LinearLayout
+            android:id="@+id/layoutHeader"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/white"
+            android:elevation="3dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="返回上一頁"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="#212121" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GIF 動畫播放器"
+                    android:textColor="#212121"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="倍速調節、逐幀檢視與圖檔資訊分析"
+                    android:textColor="#757575"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPlayStateBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_badge_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="播放中"
+                android:textColor="#019889"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <!-- Card 1: GIF Preview Stage -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <!-- Stage Backdrop Selector Row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tvSourceName"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="內建動畫：mmm.gif"
+                                android:textColor="#212121"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnBgLight"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="白"
+                                android:textColor="#263238"
+                                android:textSize="11sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnBgNeutral"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="灰"
+                                android:textColor="#263238"
+                                android:textSize="11sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnBgDark"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="黑"
+                                android:textColor="#263238"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <!-- GIF Stage Container -->
+                        <FrameLayout
+                            android:id="@+id/layoutGifStage"
+                            android:layout_width="match_parent"
+                            android:layout_height="260dp"
+                            android:layout_marginTop="10dp"
+                            android:background="#EEF2F5">
+
+                            <pl.droidsonroids.gif.GifImageView
+                                android:id="@+id/gifImageView"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="GIF 動畫預覽"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/mmm" />
+                        </FrameLayout>
+
+                        <!-- Timeline & Frame Scrubber -->
+                        <SeekBar
+                            android:id="@+id/sbFrameProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:minHeight="36dp"
+                            android:progressBackgroundTint="#CFD8DC"
+                            android:progressTint="#019889"
+                            android:thumbTint="#019889" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tvFrameProgress"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="幀數：1 / 1"
+                                android:textColor="#607D8B"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvTimeProgress"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0.00s / 0.00s"
+                                android:textColor="#607D8B"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 2: Playback, Speed & Frame Controls -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="播放與逐幀控制"
+                            android:textColor="#212121"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/btnPrevFrame"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="@drawable/bg_button_secondary"
+                                android:contentDescription="上一幀"
+                                android:src="@drawable/ic_skip_previous"
+                                app:tint="#37474F" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnPlayPause"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="8dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_btn_primary"
+                                android:drawableStart="@drawable/ic_pause"
+                                android:drawablePadding="6dp"
+                                android:drawableTint="@color/white"
+                                android:paddingHorizontal="16dp"
+                                android:text="暫停播放"
+                                android:textColor="@color/white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <ImageButton
+                                android:id="@+id/btnReset"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="8dp"
+                                android:background="@drawable/bg_button_secondary"
+                                android:contentDescription="從頭重播"
+                                android:src="@drawable/ic_replay"
+                                app:tint="#37474F" />
+
+                            <ImageButton
+                                android:id="@+id/btnNextFrame"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="@drawable/bg_button_secondary"
+                                android:contentDescription="下一幀"
+                                android:src="@drawable/ic_skip_next"
+                                app:tint="#37474F" />
+                        </LinearLayout>
+
+                        <!-- Playback Speed -->
+                        <TextView
+                            android:id="@+id/tvSpeedLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:text="播放速度：1.0x（標準）"
+                            android:textColor="#37474F"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnSpeed025"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="0.25x"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnSpeed050"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="0.5x"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnSpeed100"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="1.0x"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnSpeed150"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="1.5x"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnSpeed200"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="2.0x"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Scale Type & Loop Toggle -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnScaleFit"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="完整置中"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnScaleCrop"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="填滿裁切"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnScaleInside"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="原始比例"
+                                android:textColor="#263238"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="無限循環播放 (Infinite Loop)"
+                                    android:textColor="#37474F"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="關閉後將在播放完當前循環後自動停止"
+                                    android:textColor="#757575"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchLoopInfinite"
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:checked="true"
+                                android:contentDescription="切換無限循環播放" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 3: Source Picker & GIF Metadata -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="來源選擇與圖檔資訊"
+                            android:textColor="#212121"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnPickGif"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_btn_primary"
+                                android:drawableStart="@drawable/ic_image"
+                                android:drawablePadding="6dp"
+                                android:drawableTint="@color/white"
+                                android:paddingHorizontal="12dp"
+                                android:text="從相簿載入 GIF"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnLoadDefault"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="載入內建範本"
+                                android:textColor="#37474F"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvGifSpecs"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:lineSpacingExtra="5dp"
+                            android:text="正在讀取 GIF 解析度與幀數..."
+                            android:textColor="#546E7A"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

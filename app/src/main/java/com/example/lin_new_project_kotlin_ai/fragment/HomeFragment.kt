@@ -6,10 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.example.lin_new_project_kotlin_ai.MainActivity.Companion.mainActivity
 import com.example.lin_new_project_kotlin_ai.R
 import com.example.lin_new_project_kotlin_ai.adapter.HomeAdapter
@@ -152,23 +148,10 @@ class HomeFragment : BaseBindingFragment<FragmentHomeBinding?>() {
                         22
                     )
 
-                    "23" -> {
-                        mainActivity!!.getWindow().setFlags(
-                            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                            WindowManager.LayoutParams.FLAG_FULLSCREEN
-                        )
-                        //                    mainActivity!!.getSupportActionBar().hide(); //設定隱藏標題
-                        val controller: WindowInsetsControllerCompat = WindowCompat.getInsetsController(
-                            mainActivity!!.getWindow(),
-                            mainActivity!!.getWindow().getDecorView()
-                        )
-                        if (controller != null) {
-                            // 隱藏狀態列
-                            controller.hide(WindowInsetsCompat.Type.statusBars())
-                            // 設定行為為隱藏後滑動邊緣可暫時顯示（沉浸模式）
-                            controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE)
-                        }
-                    }
+                    "23" -> mainActivity?.pageChangeNavController(
+                        HomeFragmentDirections.actionHomeFragmentToSystemBarsFragment(),
+                        23
+                    )
 
                     "24" -> mainActivity!!.pageChangeNavController(
                         HomeFragmentDirections.actionHomeFragmentToGifFragment(),

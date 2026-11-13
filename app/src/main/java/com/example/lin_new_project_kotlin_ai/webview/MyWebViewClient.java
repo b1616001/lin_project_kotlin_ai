@@ -94,13 +94,17 @@ public class MyWebViewClient extends WebViewClient {
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         super.onPageStarted(view, url, favicon);
-        onWebViewClientl.onPageStarted(view, url, favicon);
+        if (onWebViewClientl != null) {
+            onWebViewClientl.onPageStarted(view, url, favicon);
+        }
     }
 
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        onWebViewClientl.onPageFinished(view, url);
+        if (onWebViewClientl != null) {
+            onWebViewClientl.onPageFinished(view, url);
+        }
     }
 
     @Override

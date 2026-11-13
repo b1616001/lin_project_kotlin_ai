@@ -95,6 +95,11 @@
             app:exitAnim="@android:anim/fade_out"
             app:destination="@id/screenFragment" />
         <action
+            android:id="@+id/action_homeFragment_to_systemBarsFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/systemBarsFragment" />
+        <action
             android:id="@+id/action_homeFragment_to_gifFragment"
             app:enterAnim="@android:anim/fade_in"
             app:exitAnim="@android:anim/fade_out"
@@ -208,4 +213,8 @@
         android:id="@+id/scaleImageFragment"
         android:name="com.example.lin_new_project_kotlin_ai.fragment.ScaleImageFragment"
         android:label="ScaleImageFragment" />
+    <fragment
+        android:id="@+id/systemBarsFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.SystemBarsFragment"
+        android:label="SystemBarsFragment" />
 </navigation>

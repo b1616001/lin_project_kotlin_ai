@@ -1,62 +1,758 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  >
+    android:background="#F5F7FA">
+
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <Button
-            android:text="媒體音量最大化"
+        <!-- Top Header Bar -->
+        <LinearLayout
+            android:id="@+id/layoutHeader"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_music_max" />
+            android:layout_height="56dp"
+            android:background="@color/white"
+            android:elevation="3dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
 
-        <Button
-            android:text="媒體音量逐漸大化"
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="返回上一頁"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="#212121" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="音量與震動控制台"
+                    android:textColor="#212121"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="多聲道即時調節、鈴聲試聽與震動測試"
+                    android:textColor="#757575"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvRingerModeBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_badge_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="響鈴模式"
+                android:textColor="#019889"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_music_adjust" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fillViewport="true">
 
-        <Button
-            android:text="鈴聲最大化"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
 
-            android:id="@+id/btn_ring_max" />
+                <!-- Card 1: Ringer Mode & Quick Profiles -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
 
-        <Button
-            android:text="鈴聲逐漸大化"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-            android:id="@+id/btn_ring_adjust" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="系統響鈴模式與情境預設"
+                            android:textColor="#212121"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
 
-        <Button
-            android:text="鬧鈴聲音最大化"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
 
-            android:id="@+id/btn_alarm_max" />
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnModeNormal"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="響鈴"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
 
-        <Button
-            android:text="鬧鈴聲音逐漸大化"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnModeVibrate"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="8dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="僅震動"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
 
-            android:id="@+id/btn_alarm_adjust" />
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnModeSilent"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="靜音"
+                                android:textAllCaps="false"
+                                android:textColor="#263238"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
 
-        <Button
-            android:text="震動"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_vibrate" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnPresetMuteAll"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="全靜音"
+                                android:textAllCaps="false"
+                                android:textColor="#455A64"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnPresetMeeting"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="8dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="會議低音"
+                                android:textAllCaps="false"
+                                android:textColor="#455A64"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnPresetOutdoor"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="戶外全開"
+                                android:textAllCaps="false"
+                                android:textColor="#019889"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 2: Media Volume -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_music_note"
+                                app:tint="#019889" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="媒體音量 (Media)"
+                                    android:textColor="#212121"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvMusicLevel"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="目前音量: 0 / 15 (0%)"
+                                    android:textColor="#607D8B"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/btnMusicMute"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="切換媒體靜音"
+                                android:src="@drawable/ic_volume_up"
+                                app:tint="#019889" />
+                        </LinearLayout>
+
+                        <SeekBar
+                            android:id="@+id/sbMusic"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:minHeight="36dp"
+                            android:progressBackgroundTint="#CFD8DC"
+                            android:progressTint="#019889"
+                            android:thumbTint="#019889" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_music_lower"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="減小 -"
+                                android:textColor="#37474F"
+                                android:textSize="13sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_music_adjust"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="加大 +"
+                                android:textColor="#37474F"
+                                android:textSize="13sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_music_max"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_btn_primary"
+                                android:text="最大"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_music_test"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="試聽"
+                                android:textColor="#019889"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 3: Ringtone Volume -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_notifications"
+                                app:tint="#1976D2" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="來電鈴聲 (Ringtone)"
+                                    android:textColor="#212121"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvRingLevel"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="目前音量: 0 / 7 (0%)"
+                                    android:textColor="#607D8B"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/btnRingMute"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="切換鈴聲靜音"
+                                android:src="@drawable/ic_volume_up"
+                                app:tint="#1976D2" />
+                        </LinearLayout>
+
+                        <SeekBar
+                            android:id="@+id/sbRing"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:minHeight="36dp"
+                            android:progressBackgroundTint="#CFD8DC"
+                            android:progressTint="#1976D2"
+                            android:thumbTint="#1976D2" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_ring_lower"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="減小 -"
+                                android:textColor="#37474F"
+                                android:textSize="13sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_ring_adjust"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="加大 +"
+                                android:textColor="#37474F"
+                                android:textSize="13sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_ring_max"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_btn_primary"
+                                android:text="最大"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_ring_test"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="試聽"
+                                android:textColor="#1976D2"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 4: Alarm Volume -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_alarm"
+                                app:tint="#EF6C00" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="鬧鐘音量 (Alarm)"
+                                    android:textColor="#212121"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvAlarmLevel"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="目前音量: 0 / 7 (0%)"
+                                    android:textColor="#607D8B"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/btnAlarmMute"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="切換鬧鐘靜音"
+                                android:src="@drawable/ic_volume_up"
+                                app:tint="#EF6C00" />
+                        </LinearLayout>
+
+                        <SeekBar
+                            android:id="@+id/sbAlarm"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:minHeight="36dp"
+                            android:progressBackgroundTint="#CFD8DC"
+                            android:progressTint="#EF6C00"
+                            android:thumbTint="#EF6C00" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_alarm_lower"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="減小 -"
+                                android:textColor="#37474F"
+                                android:textSize="13sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_alarm_adjust"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="加大 +"
+                                android:textColor="#37474F"
+                                android:textSize="13sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_alarm_max"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_btn_primary"
+                                android:text="最大"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_alarm_test"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_chip_light"
+                                android:text="試聽"
+                                android:textColor="#EF6C00"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card 5: Vibration & Haptic Feedback -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_vibration"
+                                app:tint="#7B1FA2" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="震動與觸覺回饋測試"
+                                    android:textColor="#212121"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvVibratorStatus"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="震動器狀態檢查中..."
+                                    android:textColor="#607D8B"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvVibrateDuration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="持續震動時長: 3.0 秒 (3000 ms)"
+                            android:textColor="#37474F"
+                            android:textSize="13sp" />
+
+                        <SeekBar
+                            android:id="@+id/sbVibrateDuration"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:max="48"
+                            android:minHeight="36dp"
+                            android:progress="28"
+                            android:progressBackgroundTint="#CFD8DC"
+                            android:progressTint="#7B1FA2"
+                            android:thumbTint="#7B1FA2" />
+
+                        <TextView
+                            android:id="@+id/tvVibrateAmplitude"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="震動強度: 100% (255)"
+                            android:textColor="#37474F"
+                            android:textSize="13sp" />
+
+                        <SeekBar
+                            android:id="@+id/sbVibrateAmplitude"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:max="254"
+                            android:minHeight="36dp"
+                            android:progress="254"
+                            android:progressBackgroundTint="#CFD8DC"
+                            android:progressTint="#7B1FA2"
+                            android:thumbTint="#7B1FA2" />
+
+                        <!-- Vibration Pattern Presets -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnVibrateShort"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="短震"
+                                android:textColor="#37474F"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnVibratePulse"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginHorizontal="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="雙脈衝"
+                                android:textColor="#37474F"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnVibrateHeartbeat"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="心跳"
+                                android:textColor="#37474F"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnVibrateSos"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button_secondary"
+                                android:text="SOS"
+                                android:textColor="#D32F2F"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Primary Vibrate & Stop Actions (Preserves @+id/btn_vibrate) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btn_vibrate"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="2"
+                                android:background="@drawable/bg_btn_primary"
+                                android:text="開始震動 (3.0s)"
+                                android:textColor="@color/white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnVibrateStop"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_btn_danger"
+                                android:text="停止震動"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
