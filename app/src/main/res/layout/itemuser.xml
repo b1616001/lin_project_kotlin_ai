@@ -2,19 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/panel_bg_all_20_1f1f1f"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_room_user_card"
     android:orientation="vertical"
-    android:padding="6dp">
+    android:padding="14dp">
 
-    <!-- Top Row: User Summary & Delete Button -->
+    <!-- Top Row: User Title & Red Pill Delete Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="6dp"
-        android:paddingVertical="4dp">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tv_text"
@@ -23,50 +21,42 @@
             android:layout_weight="1"
             android:gravity="start|center_vertical"
             android:lineSpacingExtra="2dp"
-            android:text="1. [ID: 1] User_100"
+            android:text="1. [ID: 1] User_101"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnItemDelete"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/bg_btn_danger"
-            android:minWidth="60dp"
-            android:paddingHorizontal="10dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_btn_danger_pill"
+            android:minWidth="62dp"
+            android:paddingHorizontal="14dp"
             android:text="刪除"
             android:textColor="@color/white"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Complete Data JSON Display -->
+    <!-- Monospace JSON Box matching ui_room.jpg -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="6dp"
-        android:layout_marginVertical="4dp"
-        android:background="@drawable/bg_edit_text"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_room_json_box"
         android:orientation="vertical"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="整體資料 JSON："
-            android:textColor="#9AA0A6"
-            android:textSize="11sp" />
+        android:padding="12dp">
 
         <TextView
             android:id="@+id/tv_json"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
             android:fontFamily="monospace"
-            android:lineSpacingExtra="2dp"
+            android:lineSpacingExtra="3dp"
             android:text="{}"
-            android:textColor="#03DAC5"
+            android:textColor="#2DD4BF"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -74,7 +64,6 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="4dp"
-        android:background="#22FFFFFF" />
+        android:visibility="gone" />
 
 </LinearLayout>

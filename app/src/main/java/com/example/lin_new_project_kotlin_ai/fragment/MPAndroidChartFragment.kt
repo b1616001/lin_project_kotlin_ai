@@ -108,20 +108,27 @@ class MPAndroidChartFragment : BaseBindingFragment<FragmentMpandroidChartBinding
         val binding = getBinding() ?: return
         currentTab = tab
 
-        val activeBg = Color.parseColor("#1976D2")
-        val inactiveBg = Color.parseColor("#E0E0E0")
         val activeTextColor = Color.WHITE
-        val inactiveTextColor = Color.parseColor("#424242")
+        val inactiveTextColor = Color.parseColor("#374151")
 
-        // 重置所有按鈕外觀
-        binding.btnChart.setBackgroundColor(if (tab == TAB_PIE) activeBg else inactiveBg)
+        // 使用圓角膠囊底圖切換 Segmented Tab 狀態
+        binding.btnChart.setBackgroundResource(
+            if (tab == TAB_PIE) R.drawable.bg_chart_tab_active else android.R.color.transparent
+        )
         binding.btnChart.setTextColor(if (tab == TAB_PIE) activeTextColor else inactiveTextColor)
+        binding.btnChart.setTypeface(null, if (tab == TAB_PIE) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
 
-        binding.btnStackedBar.setBackgroundColor(if (tab == TAB_BAR) activeBg else inactiveBg)
+        binding.btnStackedBar.setBackgroundResource(
+            if (tab == TAB_BAR) R.drawable.bg_chart_tab_active else android.R.color.transparent
+        )
         binding.btnStackedBar.setTextColor(if (tab == TAB_BAR) activeTextColor else inactiveTextColor)
+        binding.btnStackedBar.setTypeface(null, if (tab == TAB_BAR) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
 
-        binding.btnRadarChart.setBackgroundColor(if (tab == TAB_RADAR) activeBg else inactiveBg)
+        binding.btnRadarChart.setBackgroundResource(
+            if (tab == TAB_RADAR) R.drawable.bg_chart_tab_active else android.R.color.transparent
+        )
         binding.btnRadarChart.setTextColor(if (tab == TAB_RADAR) activeTextColor else inactiveTextColor)
+        binding.btnRadarChart.setTypeface(null, if (tab == TAB_RADAR) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
 
         // 切換各圖表容器之可見狀態
         binding.linearLayoutChart.visibility = if (tab == TAB_PIE) View.VISIBLE else View.GONE
@@ -142,8 +149,11 @@ class MPAndroidChartFragment : BaseBindingFragment<FragmentMpandroidChartBinding
     private fun initPieChart() {
         val binding = getBinding() ?: return
         PieChartMethod.ini(binding.PieChartC1, isPieHoleEnabled)
+        generateRandomPieData()
+    }
 
-        // 監聽點選特定扇區
+    private fun setupPieSelectionListener() {
+        val binding = getBinding() ?: return
         binding.PieChartC1.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
             override fun onValueSelected(e: Entry?, h: Highlight?) {
                 val index = h?.x?.toInt() ?: return
@@ -152,7 +162,7 @@ class MPAndroidChartFragment : BaseBindingFragment<FragmentMpandroidChartBinding
                     val value = pieValues[index] ?: 0
                     val total = pieValues.filterNotNull().sum().coerceAtLeast(1)
                     val percent = String.format("%.1f", (value.toFloat() / total * 100))
-                    binding.tvPieSelectedItem.text = "類別：$category\n數值：$value ($percent %)"
+                    binding.tvPieSelectedItem.text = "類別：$category / 數值：$value ($percent %)"
                 }
             }
 
@@ -160,8 +170,6 @@ class MPAndroidChartFragment : BaseBindingFragment<FragmentMpandroidChartBinding
                 binding.tvPieSelectedItem.text = "請點選上方圖表查看明細"
             }
         })
-
-        generateRandomPieData()
     }
 
     /**
@@ -178,6 +186,7 @@ class MPAndroidChartFragment : BaseBindingFragment<FragmentMpandroidChartBinding
         }
 
         PieChartMethod.setData(requireContext(), binding.PieChartC1, categoryList, pieValues)
+        setupPieSelectionListener()
         binding.tvPieSelectedItem.text = "數據已刷新，點選扇區可查看細節"
     }
 

@@ -47,4 +47,9 @@
     <string name="friday">星期五</string>
     <string name="saturday">星期六</string>
     <string name="sunday">星期日</string>
+    <string name="home_title">實驗室</string>
+    <string name="language_title">多國語系切換</string>
+    <string name="language_current_prefix">目前語系：</string>
+    <string name="language_weekdays_sample">星期一、星期二、星期三、星期四、星期五</string>
+    <string name="language_mmkv_saved">MMKV 本地語系設定已保存</string>
 </resources>

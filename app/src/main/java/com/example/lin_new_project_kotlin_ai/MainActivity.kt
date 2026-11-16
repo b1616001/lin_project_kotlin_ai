@@ -38,7 +38,14 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding?>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //        EdgeToEdge.enable(this);
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(getBinding()!!.root) { v, insets ->
+            val bars = insets.getInsets(
+                androidx.core.view.WindowInsetsCompat.Type.systemBars() or
+                    androidx.core.view.WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
         WebApi.initialization(this)
         mainActivity = this
         requestPermission()

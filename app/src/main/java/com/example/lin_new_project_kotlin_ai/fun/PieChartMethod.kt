@@ -64,9 +64,7 @@ object PieChartMethod {
 //        /**/设置饼图中间的文字 * /
         mChart.setCenterTextSize(20f)
 //        /**/设置饼图中间的文字大小 * /
-        if (!enabled) {
-            mChart.setCenterTextColor(Color.WHITE)
-        }
+        mChart.setCenterTextColor(if (enabled) Color.parseColor("#111827") else Color.WHITE)
         //        mChart.setDrawSliceText(true);//百分比下的文字說明不顯示
         //--------------------------
         //隱藏顏色說明文

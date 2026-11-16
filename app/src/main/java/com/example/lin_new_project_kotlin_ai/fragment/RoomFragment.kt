@@ -51,7 +51,7 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
                     btnInsertFavorites.visibility = View.VISIBLE
                     btnInsertHistory.visibility = View.VISIBLE
                     tvUser.visibility = View.VISIBLE
-                    tvUser.text = "已選中 ID:${userProfileEntity?.uid} -> ${Gson().toJson(userProfileEntity)}"
+                    tvUser.text = "Selected User Info : \"${userProfileEntity?.userData?.userName ?: "ID:${userProfileEntity?.uid}"}\" (ID: ${userProfileEntity?.uid})"
                     recyclerView.visibility = View.VISIBLE
                 }
             }
@@ -176,8 +176,8 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
                         btnDelete.visibility = View.GONE
                         btnInsertFavorites.visibility = View.GONE
                         btnInsertHistory.visibility = View.GONE
-                        tvUser.visibility = View.GONE
-                        tvUser.text = ""
+                        tvUser.visibility = View.VISIBLE
+                        tvUser.text = "Selected User Info : 請點選下方帳號卡片"
                     }
                 }
                 setLog("onDeleted, target ID: ${target.uid}")
@@ -254,8 +254,8 @@ class RoomFragment : BaseBindingFragment<FragmentRoomBinding?>() {
                     btnDelete.visibility = View.GONE
                     btnInsertFavorites.visibility = View.GONE
                     btnInsertHistory.visibility = View.GONE
-                    tvUser.visibility = View.GONE
-                    tvUser.text = ""
+                    tvUser.visibility = View.VISIBLE
+                    tvUser.text = "Selected User Info : 請點選下方帳號卡片"
                 }
                 userAdapter?.setArray(ArrayList())
                 setLog("清空資料庫資料,onDeleted:清空完成")
