@@ -6,7 +6,7 @@
 
 ## 1. App 介紹
 
-**Lin New Project Kotlin AI** (`com.example.lin_new_project_kotlin_ai`) 是一個以「高複用、模組化」為核心設計理念的 Android 應用程式範本與功能測試平台。專案採用 **Kotlin 與 Java 混合開發**，整合了商業級 App 最常使用的底層架構與系統工具，協助開發者快速驗證功能、重用成熟元件，並作為技術展示與教學基底。
+**Lin New Project Kotlin AI** (`com.example.lin_new_project_kotlin_ai`) 是一個以「高複用、模組化」為核心設計理念的 Android 應用程式範本與功能測試平台。專案採用 **Kotlin 與 Java 混合開發**，整合了 App 最常使用的底層架構與系統工具，協助開發者快速驗證功能、重用成熟元件，並作為技術展示與教學基底。
 
 ### 為什麼結合 AI 輔助開發？
 在從舊專案重構與現代化演進的過程中，專案全面導入 AI 輔助流程，具體涵蓋三大面向：
