@@ -41,7 +41,7 @@ class ScaleImageView @JvmOverloads constructor(
     private var mDisplayMetrics: DisplayMetrics? = null
 
     // 設定縮放最小/最大比例
-    private val mMinScale = 1.0f
+    private val mMinScale = 0.25f
     private val mMaxScale = 5.0f
 
     // 當下的狀態
@@ -71,14 +71,17 @@ class ScaleImageView @JvmOverloads constructor(
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 if (mBitmap == null) return false
                 val currentScale = getCurrentScale()
-                val targetScale = if (currentScale > mMinScale + 0.1f) {
-                    mMinScale
+                if (kotlin.math.abs(currentScale - 1.0f) > 0.1f) {
+                    mMatrix.reset()
+                    mMatrix.postTranslate(mCenterX, mCenterY)
+                    fixTranslationBounds()
                 } else {
-                    2.5f.coerceAtMost(mMaxScale)
+                    val targetScale = 2.5f.coerceAtMost(mMaxScale)
+                    val factor = if (currentScale > 0f) targetScale / currentScale else 1f
+                    mMatrix.postScale(factor, factor, e.x, e.y)
+                    fixTranslationBounds()
                 }
-                val factor = if (currentScale > 0f) targetScale / currentScale else 1f
-                mMatrix.postScale(factor, factor, e.x, e.y)
-                fixTranslationBounds()
+                mState = STATE_NONE
                 imageMatrix = mMatrix
                 return true
             }
@@ -151,7 +154,9 @@ class ScaleImageView @JvmOverloads constructor(
         if (w > 0 && h > 0) {
             width = w
             height = h
-            if (mBitmap != null) {
+            mBitmap?.let { bitmap ->
+                mCenterX = (w / 2f) - (bitmap.width / 2f)
+                mCenterY = (h / 2f) - (bitmap.height / 2f)
                 fixTranslationBounds()
                 imageMatrix = mMatrix
             }
@@ -348,14 +353,22 @@ class ScaleImageView @JvmOverloads constructor(
             val rectHeight = rectBottom - rectTop
 
             val deltaX = when {
-                rectWidth <= viewWidth -> (viewWidth - rectWidth) / 2f - rectLeft
+                rectWidth <= viewWidth -> when {
+                    rectLeft < 0f -> -rectLeft
+                    rectRight > viewWidth -> viewWidth - rectRight
+                    else -> 0f
+                }
                 rectLeft > 0f -> -rectLeft
                 rectRight < viewWidth -> viewWidth - rectRight
                 else -> 0f
             }
 
             val deltaY = when {
-                rectHeight <= viewHeight -> (viewHeight - rectHeight) / 2f - rectTop
+                rectHeight <= viewHeight -> when {
+                    rectTop < 0f -> -rectTop
+                    rectBottom > viewHeight -> viewHeight - rectBottom
+                    else -> 0f
+                }
                 rectTop > 0f -> -rectTop
                 rectBottom < viewHeight -> viewHeight - rectBottom
                 else -> 0f

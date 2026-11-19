@@ -20,9 +20,20 @@ class ScaleImageViewBoundsTest {
     @Test
     fun computeClampedScaleFactor_belowMin_clampsToMinScale() {
         val factor = ScaleImageView.computeClampedScaleFactor(
-            startScale = 2.0f,
-            rawScaleFactor = 0.25f,
-            minScale = 1.0f,
+            startScale = 0.5f,
+            rawScaleFactor = 0.2f,
+            minScale = 0.25f,
+            maxScale = 5.0f
+        )
+        assertEquals(0.5f, factor, 0.0001f)
+    }
+
+    @Test
+    fun computeClampedScaleFactor_shrinkWithinMin_keepsRawFactor() {
+        val factor = ScaleImageView.computeClampedScaleFactor(
+            startScale = 1.0f,
+            rawScaleFactor = 0.5f,
+            minScale = 0.25f,
             maxScale = 5.0f
         )
         assertEquals(0.5f, factor, 0.0001f)
@@ -33,14 +44,14 @@ class ScaleImageViewBoundsTest {
         val factor = ScaleImageView.computeClampedScaleFactor(
             startScale = 2.5f,
             rawScaleFactor = 4.0f,
-            minScale = 1.0f,
+            minScale = 0.25f,
             maxScale = 5.0f
         )
         assertEquals(2.0f, factor, 0.0001f)
     }
 
     @Test
-    fun computeTranslationDelta_smallerThanView_centersOnBothAxes() {
+    fun computeTranslationDelta_smallerThanViewInsideBounds_returnsZero() {
         val (dx, dy) = ScaleImageView.computeTranslationDelta(
             rectLeft = 200f,
             rectTop = 100f,
@@ -49,10 +60,33 @@ class ScaleImageViewBoundsTest {
             viewWidth = 1000f,
             viewHeight = 1600f
         )
-        // Target left = (1000 - 500)/2 = 250 -> dx = 50
-        // Target top = (1600 - 500)/2 = 550 -> dy = 450
-        assertEquals(50f, dx, 0.0001f)
-        assertEquals(450f, dy, 0.0001f)
+        assertEquals(0f, dx, 0.0001f)
+        assertEquals(0f, dy, 0.0001f)
+    }
+
+    @Test
+    fun computeTranslationDelta_smallerThanViewOutOfBounds_clampsInsideView() {
+        val (dxTopLeft, dyTopLeft) = ScaleImageView.computeTranslationDelta(
+            rectLeft = -50f,
+            rectTop = -30f,
+            rectRight = 450f,
+            rectBottom = 470f,
+            viewWidth = 1000f,
+            viewHeight = 1600f
+        )
+        assertEquals(50f, dxTopLeft, 0.0001f)
+        assertEquals(30f, dyTopLeft, 0.0001f)
+
+        val (dxBottomRight, dyBottomRight) = ScaleImageView.computeTranslationDelta(
+            rectLeft = 600f,
+            rectTop = 1200f,
+            rectRight = 1100f,
+            rectBottom = 1700f,
+            viewWidth = 1000f,
+            viewHeight = 1600f
+        )
+        assertEquals(-100f, dxBottomRight, 0.0001f)
+        assertEquals(-100f, dyBottomRight, 0.0001f)
     }
 
     @Test
