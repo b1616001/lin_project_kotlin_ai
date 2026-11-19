@@ -1,221 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/flRoot"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="4dp">
+    android:background="@drawable/panel_06"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
 
-    <!-- Expanded Floating Control Card -->
-    <LinearLayout
-        android:id="@+id/llExpandedCard"
-        android:layout_width="228dp"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_drag"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:elevation="10dp"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:minHeight="48dp"
+        android:background="@drawable/bg_btn_primary"
+        android:contentDescription="長按後可拖曳移動懸浮視窗"
+        android:drawableStart="@drawable/ic_drag_indicator"
+        android:drawablePadding="6dp"
+        android:paddingHorizontal="14dp"
+        android:text="長按拖曳"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
-        <!-- Drag Handle Header -->
-        <LinearLayout
-            android:id="@+id/tv_meum"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:minWidth="72dp"
+        android:minHeight="48dp"
+        android:background="@drawable/bg_btn_danger"
+        android:contentDescription="關閉懸浮視窗"
+        android:paddingHorizontal="14dp"
+        android:text="關閉"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/ivDragIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="拖曳移動懸浮視窗"
-                android:src="@drawable/ic_drag_indicator"
-                app:tint="#03DAC5" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvWindowTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="懸浮視窗"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvModeBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="應用內模式"
-                    android:textColor="#03DAC5"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/btnCollapse"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="收合為迷你浮球"
-                android:padding="7dp"
-                android:src="@drawable/ic_fullscreen_exit"
-                app:tint="#CFD8DC" />
-
-            <ImageButton
-                android:id="@+id/tv_dismiss"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="關閉懸浮視窗"
-                android:padding="7dp"
-                android:src="@drawable/btn_closed_defaul_xml" />
-        </LinearLayout>
-
-        <!-- Divider -->
-        <View
-            android:id="@+id/viewDivider"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="8dp"
-            android:background="#2E343D" />
-
-        <!-- Live Telemetry Strip -->
-        <TextView
-            android:id="@+id/tvCoords"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="6dp"
-            android:text="X: 0  Y: 0"
-            android:textColor="#B0BEC5"
-            android:textSize="11sp" />
-
-        <!-- Quick Actions Row 1 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/btnQuickTheme"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingHorizontal="6dp"
-                android:text="切換風格"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/btnQuickLock"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingHorizontal="6dp"
-                android:text="可拖曳"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Quick Actions Row 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/btnQuickSnap"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingHorizontal="6dp"
-                android:text="靠邊對齊"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/btnQuickKeepOn"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingHorizontal="6dp"
-                android:text="螢幕常亮:關"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="拖曳頂部移動 • 點擊收合切換浮球"
-            android:textColor="#8A96A3"
-            android:textSize="10sp" />
-    </LinearLayout>
-
-    <!-- Collapsed Draggable Floating Orb -->
-    <LinearLayout
-        android:id="@+id/llCollapsedOrb"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:elevation="10dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/ivOrbIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:contentDescription="點擊展開懸浮視窗"
-            android:src="@drawable/ic_fullscreen"
-            app:tint="@color/white" />
-
-        <TextView
-            android:id="@+id/tvOrbLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:text="展開"
-            android:textColor="@color/white"
-            android:textSize="9sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>
