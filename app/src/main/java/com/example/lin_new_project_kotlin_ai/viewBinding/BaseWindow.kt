@@ -2,10 +2,15 @@ package com.example.lin_new_project_kotlin_ai.viewBinding
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
 import android.content.res.Resources
 import android.graphics.PixelFormat
+import android.os.Build
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +18,7 @@ import android.view.WindowManager
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.viewbinding.ViewBinding
 import com.example.lin_new_project_kotlin_ai.R
+import com.example.lin_new_project_kotlin_ai.window.WindowMode
 
 abstract class BaseWindow<VB : ViewBinding?>(
     context: Context,
@@ -20,57 +26,45 @@ abstract class BaseWindow<VB : ViewBinding?>(
     height: Int,
     gravity: Int,
     x: Int,
-    y: Int
+    y: Int,
+    val windowMode: WindowMode = WindowMode.SYSTEM_OVERLAY,
+    attachImmediately: Boolean = true
 ) {
     @get:JvmName("Contextbinding")
     val binding: VB?
-    private val mContext: Context
+    protected val hostContext: Context
     protected var mWindowManager: WindowManager?
     protected var layoutParams: WindowManager.LayoutParams?
+    var isShowing: Boolean = false
+        private set
+    private var dismissNotified = false
 
-    //    public void setOverlay(boolean isOverlay) {
-    //        mWindowManager.removeViewImmediate(binding.getRoot());
-    //        if (isOverlay) {
-    //            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-    //        } else {
-    //            layoutParams.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
-    //        }
-    //        mWindowManager.addView(binding.getRoot(), layoutParams);
-    //    }
-    //    public void setOverlay(boolean isOverlay) {
-    //        mWindowManager.removeViewImmediate(binding.getRoot());
-    //        if (isOverlay) {
-    //            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-    //        } else {
-    //            layoutParams.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
-    //        }
-    //        mWindowManager.addView(binding.getRoot(), layoutParams);
-    //    }
     fun setVisibleFade(isShow: Boolean) {
+        val root = binding?.root ?: return
+        root.animate().cancel()
         if (isShow) {
-            binding!!.getRoot().setAlpha(0f)
-            binding.getRoot().setVisibility(View.VISIBLE)
-            binding.getRoot().animate()
+            root.alpha = 0f
+            root.visibility = View.VISIBLE
+            root.animate()
                 .alpha(1f)
-                .setDuration(500)
+                .setDuration(300)
                 .setListener(null)
         } else {
-            binding!!.getRoot().animate()
+            root.animate()
                 .alpha(0f)
-                .setDuration(300)
+                .setDuration(220)
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        binding.getRoot().setVisibility(View.INVISIBLE)
-                        binding.getRoot().setAlpha(1f)
-                        binding.getRoot().animate().setListener(null)
+                        root.visibility = View.INVISIBLE
+                        root.alpha = 1f
+                        root.animate().setListener(null)
                     }
                 })
         }
     }
 
-
     fun setVisible(isShow: Boolean) {
-        binding!!.getRoot().setVisibility(if (isShow) View.VISIBLE else View.INVISIBLE)
+        binding?.root?.visibility = if (isShow) View.VISIBLE else View.INVISIBLE
     }
 
     @JvmName("onCustomDismiss")
@@ -78,83 +72,162 @@ abstract class BaseWindow<VB : ViewBinding?>(
         this.onCustomDismissListener = onCustomDismissListener
     }
 
-    public var onCustomDismissListener: OnCustomDismissListener? = null
+    var onCustomDismissListener: OnCustomDismissListener? = null
 
     init {
-        mContext = context.getApplicationContext()
-
-
-        //        // 获取WindowManager
-//        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-//        //  mView = setUpView(context);
-//        final WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-//        // 类型
-//        params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-//
-//        // 设置flag
-//        int flags = WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
-//        // | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-//        // 如果设置了WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE，弹出的View收不到Back键的事件
-//        params.flags = flags;
-//        // 不设置这个弹出框的透明遮罩显示为黑色
-//        params.format = PixelFormat.TRANSLUCENT;
-//        // FLAG_NOT_TOUCH_MODAL不阻塞事件传递到后面的窗口
-//        // 设置 FLAG_NOT_FOCUSABLE 悬浮窗口较小时，后面的应用图标由不可长按变为可长按
-//        // 不设置这个flag的话，home页的划屏会有问题
-        val ctx = ContextThemeWrapper(mContext, R.style.TranslucentAppTheme)
-        //  binding = ViewBindingUtil.inflateWithGeneric(this, LayoutInflater.from(ctx));
-        binding = onCreateViewBinding(LayoutInflater.from(ctx))
-
-        mWindowManager = mContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
-
-        layoutParams = WindowManager.LayoutParams()
-        layoutParams!!.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        layoutParams!!.format = PixelFormat.TRANSLUCENT //讓背景透明
-        layoutParams!!.screenOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT //SCREEN_ORIENTATION_LANDSCAPE橫屏，SCREEN_ORIENTATION_PORTRAIT直屏
-
-        layoutParams!!.flags =
-            (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                    or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
-
-        //  | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-        fullScreenImmersive(binding!!.getRoot())
-
-        val w: Int
-        val h: Int
-        //
-//        if (width == 1) w = WRAP_CONTENT;
-//        if (width == 0) w = MATCH_PARENT;
-//
-        if (width == 0) {
-            w = ViewGroup.LayoutParams.MATCH_PARENT
-        } else if (width == 1) {
-            w = ViewGroup.LayoutParams.WRAP_CONTENT
+        val activity = findActivity(context)
+        hostContext = if (windowMode == WindowMode.IN_APP && activity != null) {
+            activity
         } else {
-            w = width
+            context.applicationContext
         }
-        if (height == 0) {
-            h = ViewGroup.LayoutParams.MATCH_PARENT
-        } else if (width == 1) {
-            h = ViewGroup.LayoutParams.WRAP_CONTENT
+
+        val themedContext = ContextThemeWrapper(hostContext, R.style.TranslucentAppTheme)
+        binding = onCreateViewBinding(LayoutInflater.from(themedContext))
+
+        mWindowManager = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
+
+        val params = WindowManager.LayoutParams()
+        params.type = resolveWindowType(windowMode, activity)
+        params.format = PixelFormat.TRANSLUCENT
+        params.screenOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        params.flags = (
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+            )
+
+        if (windowMode == WindowMode.IN_APP && activity != null && !activity.isFinishing && !activity.isDestroyed) {
+            params.token = activity.window?.decorView?.windowToken
+        }
+
+        params.width = resolveDimension(width)
+        params.height = resolveDimension(height)
+        params.gravity = gravity
+        params.x = x
+        params.y = y
+        layoutParams = params
+
+        if (attachImmediately) {
+            attachToWindow()
+        }
+    }
+
+    private fun resolveDimension(size: Int): Int {
+        return when (size) {
+            0 -> ViewGroup.LayoutParams.MATCH_PARENT
+            1 -> ViewGroup.LayoutParams.WRAP_CONTENT
+            else -> size
+        }
+    }
+
+    private fun resolveWindowType(mode: WindowMode, activity: Activity?): Int {
+        if (mode == WindowMode.IN_APP && activity != null && !activity.isFinishing && !activity.isDestroyed) {
+            return WindowManager.LayoutParams.TYPE_APPLICATION
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
-            h = height
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams.TYPE_PHONE
         }
-        layoutParams!!.width = w
-        // layoutParams.width = width;
-        layoutParams!!.height = h
-        layoutParams!!.gravity = gravity
-        layoutParams!!.x = x
-        layoutParams!!.y = y
+    }
 
+    private fun findActivity(context: Context): Activity? {
+        var current: Context? = context
+        while (current is ContextWrapper) {
+            if (current is Activity) return current
+            current = current.baseContext
+        }
+        return null
+    }
 
-        //   if (orientation == 0) {
-        //   ObjectAnimator.ofFloat(binding.getRoot(), "translationX", layoutParams.width, 0).setDuration(500).start();
-//        } else {
-//            ObjectAnimator.ofFloat(binding.getRoot(), "translationY", layoutParams.height, 0).setDuration(duration).start();
-//        }
-        mWindowManager!!.addView(binding!!.getRoot(), layoutParams)
+    fun attachToWindow(): Boolean {
+        if (isShowing) return true
+        val root = binding?.root ?: return false
+        val wm = mWindowManager ?: return false
+        val params = layoutParams ?: return false
+
+        if (windowMode == WindowMode.SYSTEM_OVERLAY && !Settings.canDrawOverlays(hostContext)) {
+            Log.w(TAG, "Cannot attach SYSTEM_OVERLAY window without overlay permission")
+            return false
+        }
+
+        if (windowMode == WindowMode.IN_APP) {
+            val activity = findActivity(hostContext)
+            if (activity == null || activity.isFinishing || activity.isDestroyed) {
+                Log.w(TAG, "Cannot attach IN_APP window: host activity unavailable")
+                return false
+            }
+            if (params.token == null) {
+                params.token = activity.window?.decorView?.windowToken
+            }
+        }
+
+        return try {
+            wm.addView(root, params)
+            isShowing = true
+            dismissNotified = false
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to attach window view: ${e.message}", e)
+            isShowing = false
+            false
+        }
+    }
+
+    fun updatePosition(x: Int, y: Int) {
+        val params = layoutParams ?: return
+        params.x = x
+        params.y = y
+        applyLayoutUpdate()
+    }
+
+    fun updateSize(width: Int, height: Int) {
+        val params = layoutParams ?: return
+        params.width = resolveDimension(width)
+        params.height = resolveDimension(height)
+        applyLayoutUpdate()
+    }
+
+    fun updateAlpha(alpha: Float) {
+        val params = layoutParams ?: return
+        params.alpha = alpha.coerceIn(0.1f, 1.0f)
+        applyLayoutUpdate()
+    }
+
+    fun updateFlag(flag: Int, enabled: Boolean) {
+        val params = layoutParams ?: return
+        params.flags = if (enabled) {
+            params.flags or flag
+        } else {
+            params.flags and flag.inv()
+        }
+        applyLayoutUpdate()
+    }
+
+    fun getCurrentLayoutParams(): WindowManager.LayoutParams? = layoutParams
+
+    protected fun applyLayoutUpdate() {
+        val root = binding?.root ?: return
+        val wm = mWindowManager ?: return
+        val params = layoutParams ?: return
+        if (!isShowing || !root.isAttachedToWindow) return
+        try {
+            wm.updateViewLayout(root, params)
+        } catch (e: Exception) {
+            Log.e(TAG, "updateViewLayout failed: ${e.message}", e)
+        }
+    }
+
+    fun getScreenBounds(): Pair<Int, Int> {
+        val wm = mWindowManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && wm != null) {
+            val bounds = wm.currentWindowMetrics.bounds
+            return bounds.width() to bounds.height()
+        }
+        val metrics = Resources.getSystem().displayMetrics
+        return metrics.widthPixels to metrics.heightPixels
     }
 
     interface OnCustomDismissListener {
@@ -163,39 +236,50 @@ abstract class BaseWindow<VB : ViewBinding?>(
 
     open fun dismiss() {
         try {
-            if (onCustomDismissListener != null) {
-                onCustomDismissListener!!.onDismiss()
+            val root = binding?.root
+            root?.animate()?.cancel()
+            if (root != null && root.isAttachedToWindow) {
+                mWindowManager?.removeViewImmediate(root)
             }
-            if (binding != null) {
-                mWindowManager!!.removeViewImmediate(binding!!.getRoot())
+        } catch (e: Exception) {
+            Log.e(TAG, "dismiss error: ${e.message}", e)
+        } finally {
+            isShowing = false
+            if (!dismissNotified) {
+                dismissNotified = true
+                onCustomDismissListener?.onDismiss()
             }
-//            binding = null
             layoutParams = null
             mWindowManager = null
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
     fun dp2px(dpValue: Float): Int {
-        val scale = Resources.getSystem().getDisplayMetrics().density
+        val scale = Resources.getSystem().displayMetrics.density
         return (dpValue * scale + 0.5f).toInt()
     }
 
     protected abstract fun onCreateViewBinding(layoutInflater: LayoutInflater): VB?
 
     protected fun fullScreenImmersive(view: View) {
-        val uiOptions =
-            (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        view.setSystemUiVisibility(uiOptions)
+        @Suppress("DEPRECATION")
+        val uiOptions = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+            )
+        @Suppress("DEPRECATION")
+        view.systemUiVisibility = uiOptions
     }
+
     fun getBinding(): VB? {
         return binding
     }
 
+    companion object {
+        private const val TAG = "BaseWindow"
+    }
 }

@@ -27,16 +27,14 @@ object TimeMethod {
     const val formatType6: String = "yyyy年MM月dd日"
 
     const val zone_UTC: String = "UTC"
-    const val zone_GMT_8: String = "UTC+8"
-    const val zone_GMT_9: String = "UTC+9"
+    const val zone_GMT_8: String = "GMT+8"
+    const val zone_GMT_9: String = "GMT+9"
 
     fun getTime_zone(formatType: String?, zone: String?): String {
-        //取得目前年月日時間
-        val formatter = SimpleDateFormat(formatType, Locale.getDefault())
-        val timeZone = TimeZone.getTimeZone(zone)
-        formatter.setTimeZone(timeZone)
-        val curDate = Date(System.currentTimeMillis()) // 獲取當前時間
-        return formatter.format(curDate)
+        val pattern = formatType ?: this.formatType
+        val formatter = SimpleDateFormat(pattern, Locale.getDefault())
+        formatter.timeZone = TimeZoneHelper.resolveTimeZone(zone)
+        return formatter.format(Date(System.currentTimeMillis()))
     }
 
     fun getTime(formatType: String?): String {

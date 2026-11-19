@@ -18,62 +18,66 @@ import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileDescriptor
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.nio.charset.StandardCharsets
+import kotlin.math.max
 
+data class SavedFileMetadata(
+    val uri: Uri,
+    val displayName: String,
+    val mimeType: String,
+    val sizeBytes: Long,
+    val relativePath: String
+)
 
 object AndroidQStorageSaveUtils {
+    private const val TAG = "AndroidQStorage"
+
     fun getFileDescriptor(context: Context, uri: Uri, mode: String): FileDescriptor? {
-        try {
-            //r（只讀）、w（只寫）、rw（讀寫）和 rwt（覆盖）
-            val parcelFileDescriptor = context.getContentResolver().openFileDescriptor(uri, mode)
-            val fileDescriptor = parcelFileDescriptor!!.getFileDescriptor()
-            return fileDescriptor
+        return try {
+            val parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, mode)
+            parcelFileDescriptor?.fileDescriptor
         } catch (e: Exception) {
-            e.printStackTrace()
-            return null
+            Log.e(TAG, "getFileDescriptor failed: ${e.message}", e)
+            null
         }
     }
 
     @JvmStatic
-    fun fileUriIsExists(context: Context, uri: Uri): Boolean {
-        var isExists = false
-        try {
-            //r（只讀）、w（只寫）、rw（讀寫）和 rwt（覆盖）
-            val parcelFileDescriptor = context.getContentResolver().openFileDescriptor(uri, "r")
-            isExists = parcelFileDescriptor!!.getFileDescriptor().valid()
-        } catch (e: Exception) {
-            e.printStackTrace()
+    fun fileUriIsExists(context: Context?, uri: Uri?): Boolean {
+        if (context == null || uri == null) return false
+        return try {
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                pfd.fileDescriptor.valid()
+            } ?: false
+        } catch (_: Exception) {
+            false
         }
-        return isExists
     }
 
     @JvmStatic
     fun customizedFilePath(context: Context, dirName: String?, Folder: String?): Uri? {
-        //Pictures、DCIM都是存放圖片
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.TITLE, "title_1")
-            values.put(
-                MediaStore.Images.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + ".png"
-            )
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, dirName + "/" + Folder) //Folder資料夾名稱
-            val contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            return context.getContentResolver().insert(contentUri, values)
+        val safeDir = dirName ?: Environment.DIRECTORY_DCIM
+        val safeFolder = Folder ?: "Lin"
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.TITLE, "photo_${System.currentTimeMillis()}")
+                put(MediaStore.Images.Media.DISPLAY_NAME, "sample_${System.currentTimeMillis()}.png")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "$safeDir/$safeFolder")
+            }
+            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
         } else {
-            val mediaStorageDir = getFolder(dirName + "/" + Folder)
-            val filename = mediaStorageDir.getPath() + File.separator +
-                    "sample_" + System.currentTimeMillis() + ".png" //路徑
-            val file = File(filename)
-            Log.d("圖片抓取", file.getAbsolutePath())
-            return FileMethod.getFile_uri(context, filename)
+            val mediaStorageDir = getFolder("$safeDir/$safeFolder")
+            val filename = "${mediaStorageDir.path}${File.separator}sample_${System.currentTimeMillis()}.png"
+            FileMethod.getFile_uri(context, filename)
         }
     }
 
@@ -84,42 +88,39 @@ object AndroidQStorageSaveUtils {
         dirName: String,
         Folder: String?
     ): Uri? {
-        val contentUri: Uri
+        val safeFolder = Folder ?: "Lin"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (dirName == Environment.DIRECTORY_DOWNLOADS) {
-                contentUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            val contentUri = if (dirName == Environment.DIRECTORY_DOWNLOADS) {
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI
             } else {
-                contentUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
             }
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.TITLE, "title_1")
-            values.put(
-                MediaStore.Images.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + ".txt"
-            )
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, dirName + "/" + Folder)
-            val uri = context.getContentResolver().insert(contentUri, values)
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.TITLE, "note_${System.currentTimeMillis()}")
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "note_${System.currentTimeMillis()}.txt")
+                put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "$dirName/$safeFolder")
+            }
+            val uri = context.contentResolver.insert(contentUri, values) ?: return null
             try {
-                val outputStream = context.getContentResolver().openOutputStream(uri!!)
-                outputStream!!.write(information.toByteArray())
-                outputStream.close()
+                context.contentResolver.openOutputStream(uri)?.use { out ->
+                    out.write(information.toByteArray(StandardCharsets.UTF_8))
+                    out.flush()
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "saveNotebookText failed: ${e.message}", e)
             }
             return uri
         } else {
-            val mediaStorageDir = getFolder(dirName + "/" + Folder)
-            val filename = mediaStorageDir.getPath() + File.separator +
-                    "sample_" + System.currentTimeMillis() + ".txt" //路徑
-            Log.d("txt路徑", filename)
-            val fOut: FileOutputStream?
+            val mediaStorageDir = getFolder("$dirName/$safeFolder")
+            val filename = "${mediaStorageDir.path}${File.separator}note_${System.currentTimeMillis()}.txt"
             try {
-                fOut = FileOutputStream(filename)
-                fOut.write(information.toByteArray())
-                fOut.flush()
-                fOut.close()
+                FileOutputStream(filename).use { fOut ->
+                    fOut.write(information.toByteArray(StandardCharsets.UTF_8))
+                    fOut.flush()
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "saveNotebookText legacy failed: ${e.message}", e)
             }
             return FileMethod.getFile_uri(context, filename)
         }
@@ -133,37 +134,39 @@ object AndroidQStorageSaveUtils {
         dirName: String,
         Folder: String?
     ): Uri? {
-        val contentUri: Uri
+        val ext = suffix?.takeIf { it.isNotBlank() } ?: "txt"
+        val safeFolder = Folder ?: "Lin"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (dirName == Environment.DIRECTORY_DOWNLOADS) {
-                contentUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            val contentUri = if (dirName == Environment.DIRECTORY_DOWNLOADS) {
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI
             } else {
-                contentUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
             }
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.TITLE, "title_1")
-            values.put(
-                MediaStore.Images.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + "." + suffix
-            )
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, dirName + "/" + Folder)
-            val uri = context.getContentResolver().insert(contentUri, values)
+            val mimeType = if (ext.equals("txt", ignoreCase = true)) "text/plain" else "application/octet-stream"
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.TITLE, "sample_${System.currentTimeMillis()}")
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "sample_${System.currentTimeMillis()}.$ext")
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "$dirName/$safeFolder")
+            }
+            val uri = context.contentResolver.insert(contentUri, values) ?: return null
             try {
-                val outputStream = context.getContentResolver().openOutputStream(uri!!)
-                var read: Int
-                val buffer = ByteArray(2048)
-                do {
-                    read = stream.read(buffer)
-                    outputStream!!.write(buffer, 0, read)
-                } while (read != -1)
-
-                outputStream.close()
+                stream.use { input ->
+                    context.contentResolver.openOutputStream(uri)?.use { output ->
+                        val buffer = ByteArray(4096)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                        }
+                        output.flush()
+                    }
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "saveNotebookInputStream failed: ${e.message}", e)
             }
             return uri
         } else {
-            return saveArchives_old(context, dirName + "/" + Folder, suffix, stream)
+            return saveArchives_old(context, "$dirName/$safeFolder", ext, stream)
         }
     }
 
@@ -174,66 +177,60 @@ object AndroidQStorageSaveUtils {
         stream: InputStream
     ): Uri {
         val mediaStorageDir = getFolder(Folder)
-        val filename = mediaStorageDir.getPath() + File.separator +
-                "sample_" + System.currentTimeMillis() + "." + suffix //路徑
-        Log.d("路徑", filename)
-        val fOut: FileOutputStream?
+        val filename = "${mediaStorageDir.path}${File.separator}sample_${System.currentTimeMillis()}.$suffix"
         try {
-            fOut = FileOutputStream(filename)
-            var read: Int
-            val buffer = ByteArray(2048)
-            while ((stream.read(buffer).also { read = it }) != -1) {
-                fOut.write(buffer, 0, read)
+            stream.use { input ->
+                FileOutputStream(filename).use { fOut ->
+                    val buffer = ByteArray(4096)
+                    var read: Int
+                    while (input.read(buffer).also { read = it } != -1) {
+                        fOut.write(buffer, 0, read)
+                    }
+                    fOut.flush()
+                }
             }
-            fOut.flush()
-            fOut.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "saveArchives_old failed: ${e.message}", e)
         }
         return FileMethod.getFile_uri(context, filename)
     }
 
     @JvmStatic
     fun saveBitmap(context: Context, bitmap: Bitmap, dirName: String?, Folder: String?): Uri? {
-        //Pictures、DCIM都是存放圖片
+        val safeDir = dirName ?: Environment.DIRECTORY_DCIM
+        val safeFolder = Folder ?: "Lin"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.TITLE, "title_1")
-            values.put(
-                MediaStore.Images.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + ".png"
-            )
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, dirName + "/" + Folder)
-            val contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val uri = context.getContentResolver().insert(contentUri, values)
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.TITLE, "image_${System.currentTimeMillis()}")
+                put(MediaStore.Images.Media.DISPLAY_NAME, "sample_${System.currentTimeMillis()}.png")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "$safeDir/$safeFolder")
+            }
+            val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                ?: return null
             try {
-                val parcelFileDescriptor =
-                    context.getContentResolver().openFileDescriptor(uri!!, "w")
-                val outputStream = FileOutputStream(parcelFileDescriptor!!.getFileDescriptor())
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
+                context.contentResolver.openOutputStream(uri)?.use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    out.flush()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "saveBitmap failed: ${e.message}", e)
             }
             return uri
         } else {
-            val mediaStorageDir = getFolder(dirName + "/" + Folder)
-            val filename = mediaStorageDir.getPath() + File.separator +
-                    "sample_" + System.currentTimeMillis() + ".png" //路徑
-            Log.d("圖片路徑", filename)
-            val fOut: FileOutputStream?
+            val mediaStorageDir = getFolder("$safeDir/$safeFolder")
+            val filename = "${mediaStorageDir.path}${File.separator}sample_${System.currentTimeMillis()}.png"
             try {
-                fOut = FileOutputStream(filename)
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fOut)
-                fOut.flush()
-                fOut.close()
+                FileOutputStream(filename).use { fOut ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fOut)
+                    fOut.flush()
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "saveBitmap legacy failed: ${e.message}", e)
             }
             return FileMethod.getFile_uri(context, filename)
         }
     }
-
 
     @JvmStatic
     fun saveVideo(
@@ -243,31 +240,35 @@ object AndroidQStorageSaveUtils {
         dirName: String?,
         Folder: String?
     ): Uri? {
+        val ext = suffix?.takeIf { it.isNotBlank() } ?: "mp4"
+        val safeDir = dirName ?: Environment.DIRECTORY_MOVIES
+        val safeFolder = Folder ?: "Lin"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.TITLE, "title_1")
-            values.put(
-                MediaStore.Images.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + "." + suffix
-            )
-            values.put(MediaStore.Images.Media.MIME_TYPE, "video/" + suffix)
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, dirName + "/" + Folder)
-            val contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            val uri = context.getContentResolver().insert(contentUri, values)
+            val values = ContentValues().apply {
+                put(MediaStore.Video.Media.TITLE, "video_${System.currentTimeMillis()}")
+                put(MediaStore.Video.Media.DISPLAY_NAME, "sample_${System.currentTimeMillis()}.$ext")
+                put(MediaStore.Video.Media.MIME_TYPE, "video/$ext")
+                put(MediaStore.Video.Media.RELATIVE_PATH, "$safeDir/$safeFolder")
+            }
+            val uri = context.contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+                ?: return null
             try {
-                val outputStream = context.getContentResolver().openOutputStream(uri!!)
-                var read: Int
-                val buffer = ByteArray(2048)
-                while ((stream.read(buffer).also { read = it }) != -1) {
-                    outputStream!!.write(buffer, 0, read)
+                stream.use { input ->
+                    context.contentResolver.openOutputStream(uri)?.use { output ->
+                        val buffer = ByteArray(4096)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                        }
+                        output.flush()
+                    }
                 }
-                outputStream!!.close()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "saveVideo failed: ${e.message}", e)
             }
             return uri
         } else {
-            return saveArchives_old(context, dirName + "/" + Folder, suffix, stream)
+            return saveArchives_old(context, "$safeDir/$safeFolder", ext, stream)
         }
     }
 
@@ -279,194 +280,282 @@ object AndroidQStorageSaveUtils {
         dirName: String?,
         Folder: String?
     ): Uri? {
+        val ext = suffix?.takeIf { it.isNotBlank() } ?: "mp3"
+        val safeDir = dirName ?: Environment.DIRECTORY_MUSIC
+        val safeFolder = Folder ?: "Lin"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val values = ContentValues()
-            values.put(MediaStore.Audio.Media.TITLE, "title_1")
-            values.put(
-                MediaStore.Audio.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + "." + suffix
-            )
-            values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/" + suffix)
-            values.put(MediaStore.Audio.Media.RELATIVE_PATH, dirName + "/" + Folder)
-            val contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val uri = context.getContentResolver().insert(contentUri, values)
+            val mimeType = if (ext.equals("mp3", ignoreCase = true)) "audio/mpeg" else "audio/$ext"
+            val values = ContentValues().apply {
+                put(MediaStore.Audio.Media.TITLE, "audio_${System.currentTimeMillis()}")
+                put(MediaStore.Audio.Media.DISPLAY_NAME, "sample_${System.currentTimeMillis()}.$ext")
+                put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
+                put(MediaStore.Audio.Media.RELATIVE_PATH, "$safeDir/$safeFolder")
+            }
+            val uri = context.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
+                ?: return null
             try {
-                val outputStream = context.getContentResolver().openOutputStream(uri!!)
-                var read: Int
-                val buffer = ByteArray(2048)
-                while ((stream.read(buffer).also { read = it }) != -1) {
-                    outputStream!!.write(buffer, 0, read)
+                stream.use { input ->
+                    context.contentResolver.openOutputStream(uri)?.use { output ->
+                        val buffer = ByteArray(4096)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                        }
+                        output.flush()
+                    }
                 }
-                outputStream!!.close()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "saveAudio failed: ${e.message}", e)
             }
             return uri
         } else {
-            return saveArchives_old(context, dirName + "/" + Folder, suffix, stream)
+            return saveArchives_old(context, "$safeDir/$safeFolder", ext, stream)
+        }
+    }
+
+    fun openSampleVideoStream(context: Context): InputStream {
+        return try {
+            context.resources.assets.open("test.mp4")
+        } catch (_: Exception) {
+            ByteArrayInputStream(createMinimalSampleMp4Bytes())
+        }
+    }
+
+    fun openSampleAudioStream(context: Context): InputStream {
+        return try {
+            context.resources.assets.open("六月的雨.mp3")
+        } catch (_: Exception) {
+            context.resources.assets.open("test.mp3")
         }
     }
 
     /**
-     * 公有Uri轉路徑
-     * 
-     * @param uri 图片的uri
+     * Generates a valid minimal ISO-BMFF MP4 container header (ftyp + free + mdat)
+     * as a fallback when no bundled test.mp4 asset exists.
      */
-    @JvmStatic
-    fun Uri_to_path(context: Context, uri: Uri): String? {
-        var path: String? = ""
+    fun createMinimalSampleMp4Bytes(): ByteArray {
+        return byteArrayOf(
+            // ftyp box (24 bytes): isom / iso2 / mp41
+            0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70,
+            0x69, 0x73, 0x6F, 0x6D, 0x00, 0x00, 0x02, 0x00,
+            0x69, 0x73, 0x6F, 0x6D, 0x69, 0x73, 0x6F, 0x32,
+            // free box (8 bytes)
+            0x00, 0x00, 0x00, 0x08, 0x66, 0x72, 0x65, 0x65,
+            // mdat box (16 bytes)
+            0x00, 0x00, 0x00, 0x10, 0x6D, 0x64, 0x61, 0x74,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        )
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val cursor = context.getContentResolver().query(
-                uri, arrayOf<String>(
-                    MediaStore.Images.Media.DATA,
-                    MediaStore.Images.Media.DISPLAY_NAME,
-                    MediaStore.Images.Media.DATE_ADDED,
-                    MediaStore.Images.Media._ID
-                ), null, null, null, null
-            )
-            while (cursor!!.moveToNext()) {
-                path = cursor.getString(0)
+    fun loadBitmapFromUri(context: Context, uri: Uri, maxDimPx: Int = 1440): Bitmap? {
+        return try {
+            val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, boundsOpts)
             }
-            cursor.close()
-            return path
-        } else {
-            return getPathFromUri(context, uri)
-            //            path = uri.getPath();
-//            String authroity = uri.getAuthority();
-//            String sdPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-//            Log.d("圖片抓取N", path + "," + authroity + "," + sdPath + ",");
-//            if (!path.startsWith(sdPath)) {
-//                int sepIndex = path.indexOf(File.separator, 1);
-//                if (sepIndex == -1) path = null;
-//                else {
-//                    Log.d("圖片抓取N2", path.substring(sepIndex));
-//                    path = sdPath + path.substring(sepIndex);
-//                }
-//            }
-//            return path;
+
+            var inSampleSize = 1
+            val longest = max(boundsOpts.outWidth, boundsOpts.outHeight)
+            if (longest > maxDimPx) {
+                while ((longest / inSampleSize) > maxDimPx) {
+                    inSampleSize *= 2
+                }
+            }
+
+            val decodeOpts = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
+            val decoded = context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, decodeOpts)
+            } ?: return null
+
+            val degree = readExifRotationDegree(context, uri)
+            if (degree == 0) return decoded
+
+            val matrix = Matrix().apply { postRotate(degree.toFloat()) }
+            val rotated = Bitmap.createBitmap(
+                decoded, 0, 0, decoded.width, decoded.height, matrix, true
+            )
+            if (rotated != decoded) {
+                decoded.recycle()
+            }
+            rotated
+        } catch (e: Exception) {
+            Log.e(TAG, "loadBitmapFromUri failed: ${e.message}", e)
+            null
         }
     }
 
+    private fun readExifRotationDegree(context: Context, uri: Uri): Int {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val exif = ExifInterface(stream)
+                when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                    else -> 0
+                }
+            } ?: 0
+        } catch (_: Exception) {
+            0
+        }
+    }
+
+    fun queryFileMetadata(context: Context, uri: Uri): SavedFileMetadata {
+        val resolver = context.contentResolver
+        var displayName = uri.lastPathSegment ?: "unknown"
+        var sizeBytes = -1L
+        var relativePath = ""
+
+        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            arrayOf(
+                OpenableColumns.DISPLAY_NAME,
+                OpenableColumns.SIZE,
+                MediaStore.MediaColumns.RELATIVE_PATH
+            )
+        } else {
+            arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE)
+        }
+
+        try {
+            resolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIdx != -1) {
+                        cursor.getString(nameIdx)?.let { displayName = it }
+                    }
+                    val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
+                    if (sizeIdx != -1 && !cursor.isNull(sizeIdx)) {
+                        sizeBytes = cursor.getLong(sizeIdx)
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val relIdx = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+                        if (relIdx != -1) {
+                            relativePath = cursor.getString(relIdx).orEmpty()
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "queryFileMetadata partial fallback: ${e.message}")
+        }
+
+        val mimeType = resolver.getType(uri) ?: "application/octet-stream"
+        return SavedFileMetadata(
+            uri = uri,
+            displayName = displayName,
+            mimeType = mimeType,
+            sizeBytes = sizeBytes,
+            relativePath = relativePath.ifBlank { uri.authority ?: "ContentResolver" }
+        )
+    }
+
+    fun deleteUri(context: Context, uri: Uri): Boolean {
+        return try {
+            context.contentResolver.delete(uri, null, null) > 0
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteUri failed: ${e.message}", e)
+            false
+        }
+    }
+
+    @JvmStatic
+    fun Uri_to_path(context: Context, uri: Uri): String? {
+        var path: String? = ""
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                context.contentResolver.query(
+                    uri,
+                    arrayOf(
+                        MediaStore.Images.Media.DATA,
+                        MediaStore.Images.Media.DISPLAY_NAME,
+                        MediaStore.Images.Media.DATE_ADDED,
+                        MediaStore.Images.Media._ID
+                    ),
+                    null,
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
+                    if (cursor.moveToNext()) {
+                        path = cursor.getString(0)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Uri_to_path failed: ${e.message}")
+            }
+            return path
+        } else {
+            return getPathFromUri(context, uri)
+        }
+    }
 
     @JvmStatic
     fun doPickPhotoFromGallery(context: Context): Intent? {
         try {
-//            final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//            intent.addCategory(Intent.CATEGORY_OPENABLE);
-//            intent.setType("image/*");
-
-
-//
-
-
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val packageManager: PackageManager = context.getPackageManager()
+            val packageManager: PackageManager = context.packageManager
             val intent = Intent(Intent.ACTION_PICK, uri)
             val list: MutableList<ResolveInfo?> =
                 packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
-            if (list.size > 0) {
-                // 如果有可用的Activity
+            if (list.isNotEmpty()) {
                 val picker = Intent(Intent.ACTION_PICK, uri)
-                // 使用Intent Chooser
                 return Intent.createChooser(picker, "選取圖片")
             }
         } catch (e: ActivityNotFoundException) {
             e.printStackTrace()
         }
-
         return null
     }
 
-    /**
-     * 公有路徑轉Uri
-     * 
-     * @param path 图片的path
-     */
     fun getImageContentUri(context: Context, path: String): Uri? {
-        val cursor = context.getContentResolver().query(
+        context.contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            arrayOf<String>(MediaStore.Images.Media._ID), MediaStore.Images.Media.DATA + "=? ",
-            arrayOf<String?>(path), null
-        )
-        if (cursor != null && cursor.moveToFirst()) {
-            @SuppressLint("Range") val id =
-                cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID))
-            val baseUri = Uri.parse("content://media/external/images/media")
-            cursor.close()
-            return Uri.withAppendedPath(baseUri, "" + id)
-        } else {
-            if (File(path).exists()) {
-                val values = ContentValues()
-                values.put(MediaStore.Images.Media.DATA, path)
-                return context.getContentResolver()
-                    .insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            } else {
-                return null
+            arrayOf(MediaStore.Images.Media._ID),
+            "${MediaStore.Images.Media.DATA}=? ",
+            arrayOf(path),
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                @SuppressLint("Range")
+                val id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID))
+                val baseUri = Uri.parse("content://media/external/images/media")
+                return Uri.withAppendedPath(baseUri, id.toString())
             }
+        }
+        return if (File(path).exists()) {
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DATA, path)
+            }
+            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        } else {
+            null
         }
     }
 
     @JvmStatic
     fun getBitmap(context: Context, path: String): Bitmap? {
-        try {
-            var degree = 0
-            val uu: Uri
-            if (path.contains("http")) {
-                uu = Uri.parse(path)
-            } else {
-                uu = FileMethod.getFile_uri(context, path) //可使用
-            }
-            val u1 = getImageContentUri(context, path) //可使用
-            //AndroidQStorageSaveUtils.getImageContentUri()與FileMethod.getFile_uri都可以將圖片路徑轉為Uri
-            val inputStream = context.getContentResolver().openInputStream(uu) //InputStream只能被讀取一次
-            val exifInterface = ExifInterface(context.getContentResolver().openInputStream(uu)!!)
-            val orientation = exifInterface.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
-            )
-            when (orientation) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> degree = 90
-                ExifInterface.ORIENTATION_ROTATE_180 -> degree = 180
-                ExifInterface.ORIENTATION_ROTATE_270 -> degree = 270
-            }
-            var bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
-            val matrix = Matrix()
-            matrix.reset()
-            matrix.setRotate(degree.toFloat())
-            bitmap = Bitmap.createBitmap(
-                bitmap,
-                0,
-                0,
-                bitmap.getWidth(),
-                bitmap.getHeight(),
-                matrix,
-                true
-            )
-            return bitmap
+        return try {
+            val uu = if (path.contains("http")) Uri.parse(path) else FileMethod.getFile_uri(context, path)
+            loadBitmapFromUri(context, uu)
         } catch (e: Exception) {
             Log.d("錯誤", e.toString())
-            return null
+            null
         }
     }
 
     fun deleteFoder(file: File): Boolean {
         try {
-            Log.d("刪除資料", file.toString())
-            if (file.exists()) { // 判断文件是否存在
-                if (file.isFile()) { // 判断是否是文件
-                    file.delete() // delete()方法 是删除的意思;
-                } else if (file.isDirectory()) { // 否则如果它是一个目录
-                    val files = file.listFiles() // 声明目录下所有的文件 files[];
+            if (file.exists()) {
+                if (file.isFile) {
+                    return file.delete()
+                } else if (file.isDirectory) {
+                    val files = file.listFiles()
                     if (files != null) {
-                        for (value in files) { // 遍历目录下所有的文件
-                            deleteFoder(value) // 把每个文件 用这个方法进行迭代
+                        for (value in files) {
+                            deleteFoder(value)
                         }
                     }
-                }
-                val isSuccess = file.delete()
-                if (!isSuccess) {
-                    return true
+                    return file.delete()
                 }
             }
         } catch (e: Exception) {
@@ -476,31 +565,21 @@ object AndroidQStorageSaveUtils {
     }
 
     @JvmStatic
-    fun getReadTxt(context: Context, uri: Uri): String {
-        var ss = ""
-        try {
-            val inputStream = context.getContentResolver().openInputStream(uri)
-            val bytes = ByteArray(10240)
-            val sb = StringBuffer()
-
-            while (inputStream!!.read(bytes) != -1) {
-                sb.append(String(bytes))
-            }
-            inputStream.close()
-            ss = sb.toString()
+    fun getReadTxt(context: Context?, uri: Uri?): String {
+        if (context == null || uri == null) return ""
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.bufferedReader(StandardCharsets.UTF_8).readText()
+            }.orEmpty()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "getReadTxt failed: ${e.message}", e)
+            ""
         }
-        return ss
     }
 
     private fun getFolder(Folder: String): File {
-        //android 10以下使用 判斷是否有資料夾
-        val mediaStorageDir = File(
-            Environment
-                .getExternalStorageDirectory(),
-            Folder
-        )
+        @Suppress("DEPRECATION")
+        val mediaStorageDir = File(Environment.getExternalStorageDirectory(), Folder)
         if (!mediaStorageDir.exists()) {
             mediaStorageDir.mkdirs()
         }
@@ -510,28 +589,24 @@ object AndroidQStorageSaveUtils {
     fun getPathFromUri(context: Context, uri: Uri): String? {
         var path: String? = null
         if (DocumentsContract.isDocumentUri(context, uri)) {
-            //如果是document類型的Uri，通過document id處理，內部會調用Uri.decode(docId)進行解碼
             val docId: String = DocumentsContract.getDocumentId(uri)
-            //primary:Azbtrace.txt
-            //video:A1283522
-            val splits: Array<String?> =
-                docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val splits = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             var type: String? = null
             var id: String? = null
             if (splits.size == 2) {
                 type = splits[0]
                 id = splits[1]
             }
-            when (uri.getAuthority()) {
+            when (uri.authority) {
                 "com.android.externalstorage.documents" -> if ("primary" == type) {
-                    path =
-                        Environment.getExternalStorageDirectory().toString() + File.separator + id
+                    @Suppress("DEPRECATION")
+                    path = "${Environment.getExternalStorageDirectory()}${File.separator}$id"
                 }
 
                 "com.android.providers.downloads.documents" -> if ("raw" == type) {
                     path = id
                 } else {
-                    val contentUri: Uri = ContentUris.withAppendedId(
+                    val contentUri = ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"),
                         docId.toLong()
                     )
@@ -539,26 +614,22 @@ object AndroidQStorageSaveUtils {
                 }
 
                 "com.android.providers.media.documents" -> {
-                    var externalUri: Uri? = null
-                    when (type) {
-                        "image" -> externalUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                        "video" -> externalUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                        "audio" -> externalUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    val externalUri: Uri? = when (type) {
+                        "image" -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        "audio" -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                        else -> null
                     }
                     if (externalUri != null) {
-                        val selection = "_id=?"
-                        val selectionArgs = arrayOf<String?>(id)
-                        path = getMediaPathFromUri(context, externalUri, selection, selectionArgs)
+                        path = getMediaPathFromUri(context, externalUri, "_id=?", arrayOf(id))
                     }
                 }
             }
-        } else if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme(), ignoreCase = true)) {
+        } else if (ContentResolver.SCHEME_CONTENT.equals(uri.scheme, ignoreCase = true)) {
             path = getMediaPathFromUri(context, uri, null, null)
-        } else if (ContentResolver.SCHEME_FILE.equals(uri.getScheme(), ignoreCase = true)) {
-            //如果是file類型的Uri(uri.fromFile)，直接獲取圖片路徑即可
-            path = uri.getPath()
+        } else if (ContentResolver.SCHEME_FILE.equals(uri.scheme, ignoreCase = true)) {
+            path = uri.path
         }
-        //確保如果返回路徑，則路徑合法
         return if (path == null) null else (if (File(path).exists()) path else null)
     }
 
@@ -568,80 +639,50 @@ object AndroidQStorageSaveUtils {
         selection: String?,
         selectionArgs: Array<String?>?
     ): String? {
-        var path: String?
-        val authroity = uri.getAuthority()
-        path = uri.getPath()
-        val sdPah = Environment.getExternalStorageDirectory().getAbsolutePath()
-        if (authroity == context.getPackageName() + ".myfileprovider") {
-            if (!path!!.startsWith(sdPah)) {
+        var path = uri.path
+        val authority = uri.authority
+        @Suppress("DEPRECATION")
+        val sdPath = Environment.getExternalStorageDirectory().absolutePath
+        return if (authority == "${context.packageName}.myfileprovider") {
+            if (path != null && !path.startsWith(sdPath)) {
                 val sepIndex = path.indexOf(File.separator, 1)
-                if (sepIndex == -1) path = null
-                else {
-                    path = sdPah + path.substring(sepIndex)
-                }
+                path = if (sepIndex == -1) null else sdPath + path.substring(sepIndex)
             }
-            return path
+            path
         } else {
             if (path == null || !File(path).exists()) {
-                val resolver: ContentResolver = context.getContentResolver()
-                val projection: Array<String?> = arrayOf(MediaStore.MediaColumns.DATA)
-                val cursor: Cursor? =
-                    resolver.query(uri, projection, selection, selectionArgs, null)
-                if (cursor != null) {
+                val resolver = context.contentResolver
+                val projection = arrayOf<String?>(MediaStore.MediaColumns.DATA)
+                resolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
                     if (cursor.moveToFirst()) {
                         try {
                             val index = cursor.getColumnIndexOrThrow(projection[0])
                             if (index != -1) path = cursor.getString(index)
-                            Log.i("TAG", "getMediaPathFromUri query " + path)
-                        } catch (e: IllegalArgumentException) {
-                            e.printStackTrace()
+                        } catch (_: IllegalArgumentException) {
                             path = null
-                        } finally {
-                            cursor.close()
                         }
                     }
                 }
             }
-            return path
+            path
         }
     }
 
     fun getAudioUri(context: Context, suffix: String?, dirName: String?, Folder: String): Uri? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val values = ContentValues()
-            values.put(MediaStore.Images.Media.TITLE, "title_1")
-            // 設定檔案名稱
-            values.put(
-                MediaStore.Video.Media.DISPLAY_NAME,
-                "sample_" + System.currentTimeMillis() + "." + suffix
-            )
-            // 設定檔案名稱
-            values.put(MediaStore.Video.Media.MIME_TYPE, "video/" + suffix)
-            // 設定檔案類型（Android 10+ 推薦）
-            values.put(MediaStore.Video.Media.IS_PENDING, 1)
-            values.put(MediaStore.Video.Media.RELATIVE_PATH, dirName + "/" + Folder)
-            val contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            val uri = context.getContentResolver().insert(contentUri, values)
-
-            return uri
+        val ext = suffix ?: "mp4"
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Video.Media.TITLE, "title_1")
+                put(MediaStore.Video.Media.DISPLAY_NAME, "sample_${System.currentTimeMillis()}.$ext")
+                put(MediaStore.Video.Media.MIME_TYPE, "video/$ext")
+                put(MediaStore.Video.Media.IS_PENDING, 1)
+                put(MediaStore.Video.Media.RELATIVE_PATH, "$dirName/$Folder")
+            }
+            context.contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
         } else {
             val mediaStorageDir = getFolder(Folder)
-            val filename = mediaStorageDir.getPath() + File.separator +
-                    "sample_" + System.currentTimeMillis() + "." + suffix //路徑
-            //        File cameraFile = new File(filename);
-//        Log.d("cameraFilepath", cameraFile.getAbsolutePath());
-//        return cameraFile.getAbsolutePath();
-            return FileMethod.getFile_uri(context, filename)
+            val filename = "${mediaStorageDir.path}${File.separator}sample_${System.currentTimeMillis()}.$ext"
+            FileMethod.getFile_uri(context, filename)
         }
-    } //    public static File UriToFile(Context context,Uri uri ) {
-    //        try {
-    //            InputStream inputStream = context.getContentResolver().openInputStream(uri);//InputStream只能被讀取一次
-    //            inputStream
-    //        } catch (FileNotFoundException e) {
-    //            throw new RuntimeException(e);
-    //        }
-    //
-    //
-    //    }
+    }
 }
-

@@ -124,6 +124,16 @@
             app:enterAnim="@android:anim/fade_in"
             app:exitAnim="@android:anim/fade_out"
             app:destination="@id/scaleImageFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_windowCustomFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/windowCustomFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_timeZoneFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:destination="@id/timeZoneFragment" />
     </fragment>
     <fragment
         android:id="@+id/textFragment"
@@ -217,4 +227,12 @@
         android:id="@+id/systemBarsFragment"
         android:name="com.example.lin_new_project_kotlin_ai.fragment.SystemBarsFragment"
         android:label="SystemBarsFragment" />
+    <fragment
+        android:id="@+id/windowCustomFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.WindowCustomFragment"
+        android:label="WindowCustomFragment" />
+    <fragment
+        android:id="@+id/timeZoneFragment"
+        android:name="com.example.lin_new_project_kotlin_ai.fragment.TimeZoneFragment"
+        android:label="TimeZoneFragment" />
 </navigation>

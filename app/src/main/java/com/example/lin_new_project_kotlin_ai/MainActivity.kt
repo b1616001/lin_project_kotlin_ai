@@ -18,6 +18,7 @@ import com.example.lin_new_project_kotlin_ai.databinding.ActivityMainBinding
 import com.example.lin_new_project_kotlin_ai.`fun`.LanguageUtils
 import com.example.lin_new_project_kotlin_ai.`fun`.MsgEvent
 import com.example.lin_new_project_kotlin_ai.`fun`.RxBus
+import com.example.lin_new_project_kotlin_ai.popupwindow.PopupWindowManager
 import com.example.lin_new_project_kotlin_ai.viewBinding.BaseBindingActivity
 import com.example.lin_new_project_kotlin_ai.webService.WebApi
 import com.google.zxing.integration.android.IntentIntegrator
@@ -191,18 +192,12 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding?>() {
     }
 
     fun commonROMPermissionCheck(context: Context?): Boolean {
-        var result: Boolean? = true
-        if (Build.VERSION.SDK_INT >= 23) {
-            try {
-                val clazz: Class<*> = Settings::class.java
-                val canDrawOverlays =
-                    clazz.getDeclaredMethod("canDrawOverlays", Context::class.java)
-                result = canDrawOverlays.invoke(null, context) as Boolean?
-            } catch (e: Exception) {
-                Log.e("TAG", Log.getStackTraceString(e))
-            }
+        val ctx = context ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(ctx)
+        } else {
+            true
         }
-        return result!!
     }
 
     //申請權限
@@ -210,6 +205,14 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding?>() {
         val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
         intent.setData(Uri.parse("package:" + getPackageName()))
         startActivityForResult(intent, IntentIntegrator.REQUEST_CODE)
+    }
+
+    override fun onDestroy() {
+        PopupWindowManager.dismissAll()
+        if (mainActivity === this) {
+            mainActivity = null
+        }
+        super.onDestroy()
     }
 
     companion object {

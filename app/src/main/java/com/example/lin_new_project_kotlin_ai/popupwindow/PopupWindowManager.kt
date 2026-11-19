@@ -10,7 +10,10 @@ import com.example.lin_new_project_kotlin_ai.MyApplication
 import com.example.lin_new_project_kotlin_ai.room.data.UserData
 import com.example.lin_new_project_kotlin_ai.viewBinding.BasePopupWindow
 import com.example.lin_new_project_kotlin_ai.viewBinding.BaseWindow
+import com.example.lin_new_project_kotlin_ai.window.DockCorner
 import com.example.lin_new_project_kotlin_ai.window.MediaMenuWindow
+import com.example.lin_new_project_kotlin_ai.window.WindowConfigStore
+import com.example.lin_new_project_kotlin_ai.window.WindowCustomConfig
 
 /**
  * 優化版 PopupWindowManager
@@ -200,32 +203,116 @@ object PopupWindowManager {
         }
     }
 
+    private var windowStateListener: ((WindowCustomConfig) -> Unit)? = null
+    private var windowDismissListener: (() -> Unit)? = null
+
     /**
-     * 浮動懸浮選單 Window (HomeFragment #26)
+     * 浮動懸浮選單 Window (向下相容介面)
      */
     fun showMediaMenu(isShow: Boolean) {
-        val activity = MainActivity.mainActivity ?: return
         if (isShow) {
-            if (mediaMenuWindow != null) return
-            try {
-                mediaMenuWindow = MediaMenuWindow(activity)
-                mediaMenuWindow!!.setOnCustomDismissListener(object :
-                    BaseWindow.OnCustomDismissListener {
-                    override fun onDismiss() {
+            showCustomWindow(WindowConfigStore.load())
+        } else {
+            dismissCustomWindow()
+        }
+    }
+
+    /**
+     * 啟動或更新客製化懸浮視窗
+     */
+    fun showCustomWindow(
+        config: WindowCustomConfig,
+        onStateChanged: ((WindowCustomConfig) -> Unit)? = null,
+        onDismissed: (() -> Unit)? = null
+    ): Boolean {
+        val activity = MainActivity.mainActivity
+        if (activity == null || activity.isFinishing || activity.isDestroyed) {
+            Log.w(TAG, "showCustomWindow failed: Activity is unavailable.")
+            return false
+        }
+
+        if (onStateChanged != null) windowStateListener = onStateChanged
+        if (onDismissed != null) windowDismissListener = onDismissed
+
+        val existing = mediaMenuWindow
+        if (existing != null && existing.isShowing && existing.windowMode == config.mode) {
+            existing.onConfigUpdatedListener = { updated -> windowStateListener?.invoke(updated) }
+            existing.applyConfig(config)
+            return true
+        }
+
+        if (existing != null) {
+            existing.setOnCustomDismissListener(null)
+            existing.dismiss()
+            mediaMenuWindow = null
+        }
+
+        return try {
+            val window = MediaMenuWindow(activity, config)
+            if (!window.isShowing) {
+                window.dismiss()
+                return false
+            }
+            window.onConfigUpdatedListener = { updated ->
+                windowStateListener?.invoke(updated)
+            }
+            window.setOnCustomDismissListener(object : BaseWindow.OnCustomDismissListener {
+                override fun onDismiss() {
+                    if (mediaMenuWindow == window) {
                         mediaMenuWindow = null
                     }
-                })
-            } catch (e: Exception) {
-                Log.e(TAG, "showMediaMenu failed: ${e.message}", e)
-            }
+                    windowDismissListener?.invoke()
+                }
+            })
+            mediaMenuWindow = window
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "showCustomWindow failed: ${e.message}", e)
+            mediaMenuWindow = null
+            false
+        }
+    }
+
+    fun updateCustomWindow(config: WindowCustomConfig) {
+        val existing = mediaMenuWindow ?: return
+        if (!existing.isShowing) return
+        if (existing.windowMode != config.mode) {
+            showCustomWindow(config, windowStateListener, windowDismissListener)
         } else {
-            try {
-                mediaMenuWindow?.dismiss()
-            } catch (e: Exception) {
-                Log.e(TAG, "dismiss mediaMenuWindow failed: ${e.message}")
-            } finally {
-                mediaMenuWindow = null
-            }
+            existing.applyConfig(config)
+        }
+    }
+
+    fun setCustomWindowListeners(
+        onStateChanged: ((WindowCustomConfig) -> Unit)?,
+        onDismissed: (() -> Unit)?
+    ) {
+        windowStateListener = onStateChanged
+        windowDismissListener = onDismissed
+        mediaMenuWindow?.onConfigUpdatedListener = { updated ->
+            windowStateListener?.invoke(updated)
+        }
+    }
+
+    fun snapCustomWindowToCorner(corner: DockCorner) {
+        mediaMenuWindow?.takeIf { it.isShowing }?.snapToCorner(corner)
+    }
+
+    fun resetCustomWindowPosition() {
+        mediaMenuWindow?.takeIf { it.isShowing }?.resetToDefaultPosition()
+    }
+
+    fun isCustomWindowShowing(): Boolean {
+        return mediaMenuWindow?.isShowing == true
+    }
+
+    fun dismissCustomWindow() {
+        try {
+            mediaMenuWindow?.dismiss()
+        } catch (e: Exception) {
+            Log.e(TAG, "dismiss mediaMenuWindow failed: ${e.message}")
+        } finally {
+            mediaMenuWindow = null
         }
     }
 

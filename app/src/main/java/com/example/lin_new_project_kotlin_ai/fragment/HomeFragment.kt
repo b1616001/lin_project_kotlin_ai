@@ -163,27 +163,15 @@ class HomeFragment : BaseBindingFragment<FragmentHomeBinding?>() {
                         25
                     )
 
-                    "26" -> if (!mainActivity!!.commonROMPermissionCheck(getContext())) {
-                        mainActivity!!.requestAlertWindowPermission()
-                    } else {
-                        PopupWindowManager.showMediaMenu(true)
-                    }
+                    "26" -> mainActivity?.pageChangeNavController(
+                        HomeFragmentDirections.actionHomeFragmentToWindowCustomFragment(),
+                        26
+                    )
 
-                    "27" -> {
-                        val time = "GMT+8:" + TimeMethod.getTime_zone(
-                            TimeMethod.formatType,
-                            TimeMethod.zone_GMT_8
-                        ) +
-                                "\nGMT+9:" + TimeMethod.getTime_zone(
-                            TimeMethod.formatType,
-                            TimeMethod.zone_GMT_9
-                        ) +
-                                "\nUTC:" + TimeMethod.getTime_zone(
-                            TimeMethod.formatType,
-                            TimeMethod.zone_UTC
-                        )
-                        showToast(time)
-                    }
+                    "27" -> mainActivity?.pageChangeNavController(
+                        HomeFragmentDirections.actionHomeFragmentToTimeZoneFragment(),
+                        27
+                    )
 
                     "28" -> mainActivity!!.pageChangeNavController(
                         HomeFragmentDirections.actionHomeFragmentToPublicSpaceFragment(),

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etSearchZone"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_button_secondary"
+        android:hint="搜尋城市、國家或 IANA 時區（如 Tokyo / New_York）"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
+        android:paddingHorizontal="12dp"
+        android:textColor="#212121"
+        android:textColorHint="#90A4AE"
+        android:textSize="13sp" />
+
+    <ListView
+        android:id="@+id/lvZones"
+        android:layout_width="match_parent"
+        android:layout_height="340dp"
+        android:layout_marginTop="10dp"
+        android:divider="#ECEFF1"
+        android:dividerHeight="1dp" />
+
+</LinearLayout>
